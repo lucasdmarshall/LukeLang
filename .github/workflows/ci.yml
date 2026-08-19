@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y g++ make python3 libsqlite3-dev libsodium-dev libpq-dev \
-            postgresql postgresql-client curl ca-certificates
+            postgresql postgresql-client curl ca-certificates gdb
 
       - name: Start Postgres
         run: |
