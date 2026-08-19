@@ -11,7 +11,7 @@ Zero external runtime dependencies — **server, UI, and load generator are all 
 From the repo root (needs a built `vm/build/luke`):
 
 ```bash
-# UI (Material concepts + Tailwind-oriented WEAR classes)
+# UI (dark ops console — WEAR STYLE + class hatch)
 ./vm/build/luke PUBLISH WEB Exam/client.luke -o Exam/dist/client --tailwind Exam/exam.tailwind.css
 cp Exam/exam.utilities.css Exam/dist/client.css   # skin if Tailwind CLI is unavailable
 

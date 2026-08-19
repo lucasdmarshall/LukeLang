@@ -1,11 +1,16 @@
-/* Exam — Material-inspired utilities (also produced by PUBLISH WEB --tailwind when available) */
-.rounded-2xl { border-radius: 1rem; }
-.bg-white\/90 { background-color: rgba(255, 255, 255, 0.9); }
-.bg-teal-50\/90 { background-color: rgba(240, 253, 250, 0.92); }
-.bg-rose-50\/90 { background-color: rgba(255, 241, 242, 0.92); }
-.shadow-md { box-shadow: 0 4px 6px -1px rgb(15 23 42 / 0.1), 0 2px 4px -2px rgb(15 23 42 / 0.1); }
-.shadow-slate-900\/10 { box-shadow: 0 8px 24px -8px rgb(15 23 42 / 0.12); }
-.ring-1 { box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.05); }
-.ring-black\/5 { box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.05); }
-.ring-teal-900\/10 { box-shadow: inset 0 0 0 1px rgb(19 78 74 / 0.1); }
-.ring-rose-900\/10 { box-shadow: inset 0 0 0 1px rgb(136 19 55 / 0.1); }
+/* Exam ops console — class hatch for WEAR (PUBLISH --tailwind optional). */
+.shell {
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+}
+.row, .feeds { width: 100%; min-width: 0; }
+.kpi, .panel, .feed-ok, .feed-err {
+  background: linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.035) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.feed-ok { box-shadow: inset 3px 0 0 #2ee9c3; }
+.feed-err { box-shadow: inset 3px 0 0 #ff6b7a; }
