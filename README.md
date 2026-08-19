@@ -142,6 +142,12 @@ Hub: [`documentations/`](documentations/README.md) · papers: [`documentations/p
 
 ---
 
+## Contributors
+
+LukeLang is built in the open. See [`CONTRIBUTORS.md`](CONTRIBUTORS.md) for people we want to thank by name.
+
+---
+
 ## The wall sentence
 
 > **Win reactive full-stack first. Keep the syntax. Let the browser render. Prove it with one app. Earn the rest later.**

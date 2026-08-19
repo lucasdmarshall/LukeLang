@@ -19,7 +19,7 @@ Land work **directly on `main`** (this repo’s preferred flow). Keep commits sm
 cd vm && make test
 ```
 
-CI (GitHub Actions) runs the same `make test` target, including frontend demos and the reactive conformance suite.
+CI (GitHub Actions) runs the same `make test` target, including frontend demos and the reactive conformance suite. Debugger checks (`debug_break_step`, `debug_inspect`) need `gdb` on the runner.
 
 ## Code style (vm/)
 
