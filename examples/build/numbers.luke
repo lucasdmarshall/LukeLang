@@ -1,0 +1,3 @@
+// Cell-graph face: the language iterates. No WHILE in user code.
+
+SPEAK EACH NUMBER FROM 1 TO 20

@@ -34,6 +34,28 @@ bool startsWithCI(const std::string &s, const std::string &p) {
     if (toupper((unsigned char)s[i]) != toupper((unsigned char)p[i])) return false;
   return true;
 }
+
+/* Rest after SPEAK/SAY/YELL/SHOUT EACH , or empty if not that statement. */
+std::string afterSpeakEach(const std::string &text) {
+  static const char *verbs[] = {"SPEAK ", "SAY ", "YELL ", "SHOUT "};
+  for (const char *v : verbs) {
+    std::string verb(v);
+    if (!startsWithCI(text, verb)) continue;
+    auto rest = trim(text.substr(verb.size()));
+    if (!startsWithCI(rest, "EACH ")) continue;
+    return trim(rest.substr(5));
+  }
+  return {};
+}
+
+bool isIdentName(const std::string &n) {
+  if (n.empty()) return false;
+  unsigned char c0 = (unsigned char)n[0];
+  if (!std::isalpha(c0) && n[0] != '_') return false;
+  for (char c : n)
+    if (!std::isalnum((unsigned char)c) && c != '_') return false;
+  return true;
+}
 bool stripDo(std::string &s) {
   auto U = toUpper(s);
   auto p = U.rfind(" DO");
@@ -1063,6 +1085,24 @@ Expr BC::exprLegacy(std::string e, size_t line) {
 
   {
     auto U0 = toUpper(e);
+    if (startsWithCI(e, "THE NUMBERS FROM ")) {
+      auto rest = trim(e.substr(17));
+      auto U = toUpper(rest);
+      auto toPos = findOutsideQuotes(rest, U, " TO ");
+      if (toPos == std::string::npos) {
+        fail(line, "THE NUMBERS FROM needs: THE NUMBERS FROM lo TO hi");
+        return {"luke_list_new(arena)", Ty::list()};
+      }
+      auto lo = expr(trim(rest.substr(0, toPos)), line);
+      auto hi = expr(trim(rest.substr(toPos + 4)), line);
+      if (!isNumeric(lo.ty) || !isNumeric(hi.ty)) {
+        fail(line, "THE NUMBERS FROM … TO … wants NUMBER or INTEGER");
+        return {"luke_list_new(arena)", Ty::list()};
+      }
+      Expr loN = coerceTo(line, lo, Ty::num(), "THE NUMBERS FROM");
+      Expr hiN = coerceTo(line, hi, Ty::num(), "THE NUMBERS FROM");
+      return {"luke_numbers_from_to(arena, " + loN.code + ", " + hiN.code + ")", Ty::list()};
+    }
     if (U0 == "THE VIEWPORT WIDTH" || U0 == "THE WINDOW WIDTH")
       return {"argus_viewport_width()", Ty::num()};
     if (U0 == "THE VIEWPORT HEIGHT" || U0 == "THE WINDOW HEIGHT")
@@ -1538,6 +1578,22 @@ Expr BC::exprLegacy(std::string e, size_t line) {
   };
   if (auto *r = cmp(" EQUALS ", "==")) return *r;
   if (auto *r = cmp(" IS EQUAL TO ", "==")) return *r;
+  {
+    auto pos = findOutsideQuotes(e, U, " IS DIVISIBLE BY ");
+    if (pos != std::string::npos) {
+      auto L = expr(trim(e.substr(0, pos)), line);
+      auto R = expr(trim(e.substr(pos + 17)), line);
+      if (!isNumeric(L.ty) || !isNumeric(R.ty)) {
+        fail(line, "IS DIVISIBLE BY wants NUMBER or INTEGER");
+        return {"0", Ty::flag()};
+      }
+      if (L.ty.k == K::Int && R.ty.k == K::Int)
+        return {"luke_i64_divisible(" + L.code + ", " + R.code + ")", Ty::flag()};
+      Expr Lc = L.ty.k == K::Int ? Expr{"((double)(" + L.code + "))", Ty::num()} : L;
+      Expr Rc = R.ty.k == K::Int ? Expr{"((double)(" + R.code + "))", Ty::num()} : R;
+      return {"luke_divisible(" + Lc.code + ", " + Rc.code + ")", Ty::flag()};
+    }
+  }
   if (auto *r = cmp(" IS LESS THAN ", "<")) return *r;
   if (auto *r = cmp(" IS GREATER THAN ", ">")) return *r;
   if (auto *r = cmp(" IS LESS THAN OR EQUAL TO ", "<=")) return *r;
@@ -1717,6 +1773,101 @@ void stmt(BC &bc, const std::string &text, size_t line, std::ostringstream &o,
   if (srcFile.empty()) srcFile = "luke";
   emitLineDir(srcFile, line, o);
   LineScope lineScope(o);
+  {
+    auto after = afterSpeakEach(text);
+    if (!after.empty() && startsWithCI(after, "NUMBER FROM ")) {
+      auto rest = trim(after.substr(12));
+      auto U = toUpper(rest);
+      if (findOutsideQuotes(rest, U, " WHERE ") != std::string::npos) {
+        bc.fail(line, "WHERE needs a name — SPEAK EACH n FROM lo TO hi WHERE …");
+        return;
+      }
+      auto toPos = findOutsideQuotes(rest, U, " TO ");
+      if (toPos == std::string::npos) {
+        bc.fail(line, "SPEAK EACH NUMBER FROM needs: SPEAK EACH NUMBER FROM lo TO hi");
+        return;
+      }
+      auto lo = bc.expr(trim(rest.substr(0, toPos)), line);
+      auto hi = bc.expr(trim(rest.substr(toPos + 4)), line);
+      if (!bc.isNumeric(lo.ty) || !bc.isNumeric(hi.ty)) {
+        bc.fail(line, "SPEAK EACH NUMBER FROM … TO … wants NUMBER or INTEGER");
+        return;
+      }
+      Expr loN = bc.coerceTo(line, lo, Ty::num(), "SPEAK EACH NUMBER FROM");
+      Expr hiN = bc.coerceTo(line, hi, Ty::num(), "SPEAK EACH NUMBER FROM");
+      o << "  luke_speak_each_number(" << loN.code << ", " << hiN.code << ");\n";
+      return;
+    }
+    if (!after.empty() && !startsWithCI(after, "OF ")) {
+      auto U = toUpper(after);
+      auto fromPos = findOutsideQuotes(after, U, " FROM ");
+      if (fromPos != std::string::npos) {
+        auto varName = trim(after.substr(0, fromPos));
+        if (!isIdentName(varName) || toUpper(varName) == "NUMBER" || toUpper(varName) == "OF") {
+          bc.fail(line, "SPEAK EACH name FROM needs a name — SPEAK EACH n FROM 1 TO 20 WHERE …");
+          return;
+        }
+        auto rest = trim(after.substr(fromPos + 6));
+        auto RU = toUpper(rest);
+        auto toPos = findOutsideQuotes(rest, RU, " TO ");
+        if (toPos == std::string::npos) {
+          bc.fail(line, "SPEAK EACH n FROM needs: SPEAK EACH n FROM lo TO hi [WHERE pred]");
+          return;
+        }
+        auto hiRaw = trim(rest.substr(toPos + 4));
+        auto HU = toUpper(hiRaw);
+        auto wherePos = findOutsideQuotes(hiRaw, HU, " WHERE ");
+        std::string hiSrc, whereSrc;
+        if (wherePos == std::string::npos) {
+          hiSrc = hiRaw;
+        } else {
+          hiSrc = trim(hiRaw.substr(0, wherePos));
+          whereSrc = trim(hiRaw.substr(wherePos + 7));
+        }
+        auto lo = bc.expr(trim(rest.substr(0, toPos)), line);
+        auto hi = bc.expr(hiSrc, line);
+        if (!bc.isNumeric(lo.ty) || !bc.isNumeric(hi.ty)) {
+          bc.fail(line, "SPEAK EACH n FROM … TO … wants NUMBER or INTEGER");
+          return;
+        }
+        Expr loN = bc.coerceTo(line, lo, Ty::num(), "SPEAK EACH n FROM");
+        Expr hiN = bc.coerceTo(line, hi, Ty::num(), "SPEAK EACH n FROM");
+        bool had = bc.locals.count(varName) != 0;
+        Ty oldTy = had ? bc.locals[varName] : Ty::vod();
+        bc.locals[varName] = Ty::num();
+        Expr pred{"1", Ty::flag()};
+        if (!whereSrc.empty()) {
+          pred = bc.expr(whereSrc, line);
+          if (pred.ty.k != K::Flag && pred.ty.k != K::Num && pred.ty.k != K::Int)
+            bc.fail(line, "WHERE needs a FLAG (or NUMBER/INTEGER) — got " + tyName(pred.ty));
+        }
+        if (had) bc.locals[varName] = oldTy;
+        else bc.locals.erase(varName);
+        if (bc.bad) return;
+        int id = ++bc.forEachSeq;
+        std::string vn = cIdent(varName);
+        o << "  {\n";
+        o << "    double _luke_each_lo" << id << " = " << loN.code << ";\n";
+        o << "    double _luke_each_hi" << id << " = " << hiN.code << ";\n";
+        o << "    for (double " << vn << " = _luke_each_lo" << id << "; " << vn << " <= _luke_each_hi"
+          << id << " + 1e-9; " << vn << " += 1) {\n";
+        o << "      if (" << pred.code << ") luke_speak_number(" << vn << ");\n";
+        o << "    }\n";
+        o << "  }\n";
+        return;
+      }
+    }
+  }
+  if (startsWithCI(text, "SPEAK EACH OF ") || startsWithCI(text, "SAY EACH OF ") ||
+      startsWithCI(text, "YELL EACH OF ") || startsWithCI(text, "SHOUT EACH OF ")) {
+    auto rest = trim(text.substr(text.find(' ') + 1));
+    rest = trim(rest.substr(rest.find(' ') + 1)); /* EACH */
+    rest = trim(rest.substr(rest.find(' ') + 1)); /* OF */
+    auto listE = bc.expr(rest, line);
+    bc.expectTy(line, listE.ty, Ty::list(), "SPEAK EACH OF");
+    o << "  luke_speak_each_of(" << listE.code << ");\n";
+    return;
+  }
   if (startsWithCI(text, "SPEAK ") || startsWithCI(text, "SAY ") || startsWithCI(text, "YELL ") ||
       startsWithCI(text, "SHOUT ")) {
     auto sp = text.find(' ');

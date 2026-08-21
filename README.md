@@ -41,20 +41,22 @@ That graph is the **Live Graph**: the reactive substrate of the whole stack.
 
 ## Taste the language
 
-```luke
-SPEAK "Hello from Luke Build"
+A Build app’s face is cells and reactions — not `WHILE` / mutation `SET` / `THIS IS FUNCTION`. The compiler writes the loop.
 
-MY NAME IS name SET TO "Luke"
-SPEAK "My name is " AND name
+```luke
+SPEAK EACH NUMBER FROM 1 TO 20
 
 REMEMBER count AS NUMBER SET TO 0
 WHEN THE BUTTON "inc" IS CLICKED DO
   INCREASE count BY 1
 END WHEN
 BIND "label" TO count
+
+WATCH user FROM db WHERE "id = 1"
+BIND "name" TO user
 ```
 
-Conversational on the surface. Precise underneath: typed Build mode, arena memory, no GC on the ship path.
+Conversational on the surface. Precise underneath: typed Build mode, arena memory, no GC on the ship path. See [`docs/STRATEGY.md`](docs/STRATEGY.md).
 
 ---
 
@@ -119,8 +121,9 @@ Examples live in `examples/build/`. Play-only demos in `examples/native/` (use `
 
 1. **Be different where the user stands** — conversational syntax and reactive model, not exotic plumbing.
 2. **Build is the language of record** — layouts, types, arenas. Play VM is the skateboard.
-3. **The browser is the renderer** — Path A: compile to DOM + CSS; Argus patches surgically.
-4. **One beachhead** — win reactive full-stack web first. Mobile, game, and canvas tracks are parked until earned.
+3. **The face is a cell graph** — `REMEMBER` / `WATCH` / `BIND` / `WHEN` / `SPEAK EACH`. Recipes (`WHILE`, mutation `SET`, `THIS IS FUNCTION`) stay off README and hello-world.
+4. **The browser is the renderer** — Path A: compile to DOM + CSS; Argus patches surgically.
+5. **One beachhead** — win reactive full-stack web first. Mobile, game, and canvas tracks are parked until earned.
 
 Full decision record: [`docs/STRATEGY.md`](docs/STRATEGY.md).
 

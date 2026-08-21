@@ -22,6 +22,7 @@ struct OpLit {
 static const OpLit kOps[] = {
     {"IS LESS THAN OR EQUAL TO", TokKind::OpLe},
     {"IS GREATER THAN OR EQUAL TO", TokKind::OpGe},
+    {"IS DIVISIBLE BY", TokKind::OpDivisible},
     {"IS LESS THAN", TokKind::OpLt},
     {"IS GREATER THAN", TokKind::OpGt},
     {"IS EQUAL TO", TokKind::OpEq},
@@ -55,6 +56,7 @@ int infixPrec(TokKind k) {
   case TokKind::OpGt:
   case TokKind::OpLe:
   case TokKind::OpGe:
+  case TokKind::OpDivisible:
     return 20;
   case TokKind::OpAdd:
   case TokKind::OpSub:
@@ -367,6 +369,15 @@ std::pair<std::string, std::string> lowerExprAst(const Ast &ast, size_t line, co
         };
         return {"luke_text_concat(" + ctx.arenaVar + ",(" + toText(L) + "),(" + toText(R) + "))",
                 "text"};
+      }
+      if (n.op == TokKind::OpDivisible) {
+        if (L.second == "int" && R.second == "int")
+          return {"luke_i64_divisible(" + L.first + ", " + R.first + ")", "flag"};
+        auto toNum = [](std::pair<std::string, std::string> v) {
+          if (v.second == "int") return std::string("((double)(") + v.first + "))";
+          return v.first;
+        };
+        return {"luke_divisible(" + toNum(L) + ", " + toNum(R) + ")", "flag"};
       }
       bool cmp = n.op == TokKind::OpEq || n.op == TokKind::OpLt || n.op == TokKind::OpGt ||
                  n.op == TokKind::OpLe || n.op == TokKind::OpGe;

@@ -33,6 +33,7 @@ Nail these rules before money / IDs / counters rely on them.
 
 - INTEGER vs INTEGER: exact
 - Mixed INTEGER/NUMBER: INTEGER is widened to `double` first (precision caveat above)
+- `n IS DIVISIBLE BY d` → `FLAG` (`luke_i64_divisible` / `luke_divisible`; divisor `0` is false)
 
 ## Reactive cells
 

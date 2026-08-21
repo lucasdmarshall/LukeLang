@@ -78,6 +78,7 @@ enum class TokKind {
   OpGt,   /* IS GREATER THAN */
   OpLe,
   OpGe,
+  OpDivisible, /* IS DIVISIBLE BY */
   OpNot,  /* NOT */
   Newline,
   Comment,

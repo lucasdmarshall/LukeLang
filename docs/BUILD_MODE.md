@@ -3,7 +3,7 @@
 > **Play** (`luke SHOW`) is a convenience: GC’d bytecode VM for demos and exploration.  
 > **Build** (`luke BUILD`) is the language of record: conversational syntax → **native code**, **no GC**, Rust-class lightness.
 
-This is Path A: Python-shaped versatility on the surface, Zig/Rust-shaped cost underneath.
+This is Path A: a **cell-graph face** (cells + reactions) on the surface, Zig/Rust-shaped cost underneath. `WHILE`, mutation `SET`, and `THIS IS FUNCTION` are recipes — they compile, but they are not the teaching surface ([`STRATEGY.md`](./STRATEGY.md)).
 
 ## Commands
 
@@ -103,6 +103,10 @@ MY NAME IS nums AS LIST
 ADD "one" TO nums
 SPEAK ITEM 0 OF nums
 SPEAK HOW MANY IN nums
+SPEAK EACH OF nums
+SPEAK EACH NUMBER FROM 1 TO 20
+SPEAK EACH n FROM 1 TO 20 WHERE n IS DIVISIBLE BY 2
+SPEAK EACH OF THE NUMBERS FROM 1 TO 5
 
 MY NAME IS bag AS MAP
 PUT "name" TO "Luke" IN bag
@@ -155,7 +159,7 @@ Bump pointer is restored at `END ARENA` — request/frame-scoped memory without 
 | **Fixed layouts** | `BLUEPRINT` fields are a C struct — not open hash maps |
 | **Known types** | Locals/fields are `NUMBER`, `FLAG`, `TEXT`, or a blueprint type |
 | **Native code** | Ahead-of-time C → machine code (and later WASM) |
-| **Same voice** | `SPEAK`, `MY NAME IS`, `ASK`, `BLUEPRINT` still work |
+| **Same voice** | `SPEAK`, `SPEAK EACH`, `MY NAME IS`, `ASK`, `BLUEPRINT` still work |
 
 ## Types (Luke words)
 
@@ -259,7 +263,7 @@ Dog *Dog_born(LukeArena *a, LukeText name);
 
 Play remains for sketching. **Shipping artifacts should `BUILD`.**
 
-## Roadmap toward “Python everywhere + Rust light”
+## Roadmap toward “cell-graph face + Rust light”
 
 1. ~~Build → C + arena runtime~~
 2. ~~Clearer Luke-voice Build errors; `AS TYPE` annotations~~
@@ -307,8 +311,9 @@ luke BUILD examples/build/hanka_demo.luke -target browser -o build/hanka_demo
 ## Philosophy
 
 Conversational syntax is the **UI**.  
+The face of a Build app is **cells and reactions** (`REMEMBER` / `WATCH` / `BIND` / `WHEN` / `SPEAK EACH`).  
 Build-mode layouts, types, and arenas are the **truth**.  
-That split is how Luke can feel like Python and weigh like Rust.
+That split is how Luke can feel like speech and weigh like Rust. Recipes (`WHILE`, mutation `SET`, `THIS IS FUNCTION`) compile; they are not the teaching surface.
 
 ## Parser ceiling (known limit)
 

@@ -80,6 +80,18 @@ test-build: build/luke
 	@grep -qE '#line 11 ".*hello\.luke"' build/ex_hello.luke.c
 	@test $$(grep -c '^#line ' build/ex_hello.luke.c) -ge 7
 	@readelf --debug-dump=line build/ex_hello 2>/dev/null | grep -q 'hello\.luke'
+	@# Cell-graph face: SPEAK EACH NUMBER FROM — compiler writes the loop
+	./build/luke BUILD ../examples/build/numbers.luke -o build/ex_numbers
+	./build/ex_numbers | tee /tmp/luke_numbers.txt
+	@test $$(wc -l < /tmp/luke_numbers.txt) -eq 20
+	@test "$$(head -n1 /tmp/luke_numbers.txt)" = "1"
+	@test "$$(tail -n1 /tmp/luke_numbers.txt)" = "20"
+	@# Cell-graph face: SPEAK EACH n FROM … WHERE n IS DIVISIBLE BY 2
+	./build/luke BUILD ../examples/build/even_numbers.luke -o build/ex_even_numbers
+	./build/ex_even_numbers | tee /tmp/luke_even_numbers.txt
+	@test $$(wc -l < /tmp/luke_even_numbers.txt) -eq 10
+	@test "$$(head -n1 /tmp/luke_even_numbers.txt)" = "2"
+	@test "$$(tail -n1 /tmp/luke_even_numbers.txt)" = "20"
 	./build/luke BUILD ../examples/build/counter.luke -o build/ex_counter
 	./build/ex_counter
 	./build/luke BUILD ../examples/build/functions.luke -o build/ex_functions

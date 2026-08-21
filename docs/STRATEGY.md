@@ -15,6 +15,38 @@ Everything below follows from that sentence.
 
 ---
 
+## The face of a Build app
+
+> **A Build app’s face is a set of cells and reactions.**
+> `WHILE`, mutation `SET`, and `THIS IS FUNCTION` are recipes — they compile, but they must not appear in README, getting-started, or hello-world.
+
+The teaching surface is `REMEMBER` / `WATCH` / `BIND` / `WHEN` / `SPEAK EACH`. The compiler writes the loop. `MY NAME IS … SET TO` is declaration, not mutation.
+
+```luke
+SPEAK EACH NUMBER FROM 1 TO 20
+
+REMEMBER count AS NUMBER SET TO 0
+WHEN THE BUTTON "inc" IS CLICKED DO
+  INCREASE count BY 1
+END WHEN
+BIND "label" TO count
+
+WATCH user FROM db WHERE "id = 1"
+BIND "name" TO user
+```
+
+Lists: `THE NUMBERS FROM lo TO hi` is an expression; `SPEAK EACH OF list` prints each item. `SPEAK list` still prints length.
+
+The core is **closed**. A new homework does not add a new keyword. `EVEN` / `ODD` / `PRIME` are not words in the language. Learners compose `EACH` + `WHERE` + comparison operators they already have:
+
+```luke
+SPEAK EACH n FROM 1 TO 20 WHERE n IS DIVISIBLE BY 2
+```
+
+Multiples of 3 is the same sentence with `3`. Recipes stay in the compiler for servers, algorithms, and stdlib — they are not the face.
+
+---
+
 ## Two kinds of "different"
 
 LukeLang exists to be different from JS and Python. But there are two kinds of different, and only one of them helps us:
