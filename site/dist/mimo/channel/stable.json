@@ -6,37 +6,47 @@
   "targets": {
     "darwin-arm64": {
       "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-darwin-arm64.tar.gz",
-      "sha256": "24d3da1a1ff8c9043abb11b60a454c6256c8947d8781c47bf6d010f550ec6a24",
+      "sha256": "29f39315839b41a53e76fa7b4640be19fc1b6cf2a952a937b1f5d35a385dbd02",
+      "binary": "luke"
+    },
+    "darwin-x86_64": {
+      "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-darwin-x86_64.tar.gz",
+      "sha256": "a51e04ee6c71c78b165fba2982add53133b56cafe38903deafa7bc3315a3645e",
       "binary": "luke"
     },
     "linux-aarch64": {
       "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-aarch64.tar.gz",
-      "sha256": "5211b75f82959ea9264be503174f0d75225e11551b191eea9c27ff1cac02a6c5",
+      "sha256": "ab9cdba17de83af91cff210d42541f23b92902829f5c7143734e5f0def9ed5f4",
       "binary": "luke"
     },
     "linux-armv7": {
       "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-armv7.tar.gz",
-      "sha256": "d56ae4524f9f569ce805b9187a75a8aee429e5af4b302336fca9d4fb3995fc57",
+      "sha256": "e6355d04d9af5132262692642f6a1578289085dbdaba226928c96d2ce531d8b0",
       "binary": "luke"
     },
     "linux-i686": {
       "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-i686.tar.gz",
-      "sha256": "29fc81dbe1bd551c8ccea4e85b3d666d3c6b094d4c02d550333c955d07e43170",
+      "sha256": "5e5e5c5b10b3a7f8a6da997665608c26ddedf274a78a0f0af74cec1f4fe13c9f",
       "binary": "luke"
     },
     "linux-x86_64": {
       "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-x86_64.tar.gz",
-      "sha256": "7be6f3f3176382751721d50c44a7aefeecfb663deb2a9a40098953fd1d7d02f3",
+      "sha256": "97215325a223f349190628c83a0da007ee94140ab4baf33a440e3e1d546fc008",
       "binary": "luke"
+    },
+    "windows-arm64": {
+      "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-windows-arm64.zip",
+      "sha256": "516f55d4691806eefb4e195bda3655ed5684866f71a40a90e87ddce37847fe73",
+      "binary": "luke.exe"
     },
     "windows-i686": {
       "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-windows-i686.zip",
-      "sha256": "4ee3cc387b7b63345d2cf4a74faf25f5cacea76596d68b21ef484df987a17336",
+      "sha256": "7b36a84a3e06974768b2efee787c04b92d9085df5a62626ade2924f60ba648a1",
       "binary": "luke.exe"
     },
     "windows-x86_64": {
       "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-windows-x86_64.zip",
-      "sha256": "785008fb6d0db6b32926edcc42d6ebd20ab53c2f213de6899df5ab6f93884950",
+      "sha256": "0280b163fe6900f817152f95cb15958acde7ccea0c5ae3d5e691c8fd606837c1",
       "binary": "luke.exe"
     }
   }
