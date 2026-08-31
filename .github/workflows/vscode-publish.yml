@@ -3,13 +3,20 @@ name: Publish VS Code Extension
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "Optional version bump (leave empty to publish current package.json version)"
-        required: false
-        type: string
+      registry:
+        description: "Where to publish"
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - marketplace
+          - openvsx
 
 jobs:
-  publish:
+  marketplace:
+    name: Visual Studio Marketplace
+    if: inputs.registry == 'both' || inputs.registry == 'marketplace'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -25,12 +32,38 @@ jobs:
           test -f tools/vscode/lukelang/icons/lukelang256x256.png
           test -f tools/vscode/lukelang/icons/lukelang500x500.png
 
-      - name: Publish to Visual Studio Marketplace
+      - name: Publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: |
           if [[ -z "${VSCE_PAT}" ]]; then
-            echo "VSCE_PAT secret is not configured on this repository."
+            echo "VSCE_PAT secret is not configured on this repository." >&2
+            echo "Create it at dev.azure.com with scope Marketplace > Manage," >&2
+            echo "scoped to all accessible organizations." >&2
             exit 1
           fi
           bash scripts/vscode_extension_publish.sh
+
+  openvsx:
+    name: Open VSX (Cursor, VSCodium, Gitpod)
+    if: inputs.registry == 'both' || inputs.registry == 'openvsx'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Publish
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [[ -z "${OVSX_PAT}" ]]; then
+            echo "OVSX_PAT secret is not configured on this repository." >&2
+            echo "Create a token at open-vsx.org/user-settings/tokens after signing" >&2
+            echo "the Eclipse Publisher Agreement." >&2
+            exit 1
+          fi
+          bash scripts/vscode_extension_publish_openvsx.sh

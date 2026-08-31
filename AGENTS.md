@@ -1,85 +1,135 @@
-# AGENTS.md — LukeLang Agent Playbook
+# AGENTS.md — LukeLang agent playbook
 
-This file is the canonical quick-start for AI/code agents working on LukeLang.
-If you have no LukeLang pretraining, read this file first, then execute tasks.
+Canonical quick-start for AI and code agents working on LukeLang. If you have no LukeLang
+pretraining, read this file first, then execute tasks. Everything here is verifiable from the
+repository — when this file and the code disagree, the code wins and this file is the bug.
 
 ## 1) Project identity (do not drift)
 
-- LukeLang is **Build-first**.
-- `luke BUILD` is the language of record (native/WASM, no GC in shipped path).
-- `luke SHOW --vm` is compatibility/convenience, not the product core.
-- Backend + Live Graph are the current beachhead.
+- LukeLang is **Build-first**. `luke BUILD` is the language of record: native or WebAssembly,
+  arena memory, no GC on the shipped path.
+- `luke SHOW --vm` is the Play VM — a compatibility skateboard, not the product core.
+- **Backend + Live Graph is the current beachhead.** Mobile, game and canvas tracks are parked.
+- One dependency graph spans database, server, wire and browser. Never add a fetch/subscribe
+  layer parallel to it.
 
-Primary docs:
+Primary docs: [`docs/STRATEGY.md`](docs/STRATEGY.md) ·
+[`docs/BUILD_MODE.md`](docs/BUILD_MODE.md) ·
+[`docs/SYNTAX_V2_SPEC.md`](docs/SYNTAX_V2_SPEC.md) ·
+[`docs/LIVE_GRAPH.md`](docs/LIVE_GRAPH.md) ·
+[`docs/SCORECARD.md`](docs/SCORECARD.md)
 
-- `docs/STRATEGY.md`
-- `docs/BUILD_MODE.md`
-- `docs/BACKEND_ROADMAP.md`
-- `docs/LIVE_GRAPH.md`
+## 2) Syntax v2 is the default — read this before writing any Luke code
 
-## 2) Environment + build commands (canonical)
+Since PR #38, **`.luke` and `.lk` are both syntax v2**. Writing conversational v1 into a
+`.luke` file is now a syntax error, and it is the single most common mistake an agent makes
+here.
 
-From repository root:
+| Write this | Not this |
+| --- | --- |
+| `print(x)` | `SPEAK x` |
+| `let n = 1` / `var n = 1` | `MY NAME IS n SET TO 1` |
+| `let n: float = 1` | `MY NAME IS n AS NUMBER SET TO 1` |
+| `fn f(a: float) -> float { … }` | `THIS IS FUNCTION f WITH a AS NUMBER … END FUNCTION` |
+| `return a + b` | `GIVE BACK ADD a AND b` |
+| `struct Dog : Animal { … }` | `BLUEPRINT Dog FOLLOWS Animal DO … END CLASS` |
+| `import std/server` | `IMPORT std/server` |
+| `signal count = 0` | `REMEMBER count SET TO 0` |
+| `effect on cell { … }` | `WHEN REACTIVE cell CHANGES DO … END WHEN` |
+
+Types: `int`, `float`, `str`, `bool`, `list`, `map`, `json`, plus `Server`, `Request`, `Db`.
+
+Escape hatches, in order of preference:
+
+1. `raw "…"` or `raw """…"""` passes a line straight through to the v1 surface. Use it for
+   forms v2 does not express yet (`CONTRACT`, `ALWAYS`, layout phrases).
+2. `luke MIGRATE file.luke` rewrites v1 source into v2 and marks anything it cannot translate
+   with `TODO(migrate)`.
+3. `luke --syntax=1 BUILD file.luke` forces the conversational surface for the deprecation
+   window. Note the flag goes **before** the command.
+
+Conversational sources are archived under `examples/v1_archive/` and `vm/stdlib_v1_archive/`
+and are what the equivalence gates compare against. Do not "fix" them into v2.
+
+Architecture note: v2 parses to an AST and **lowers to v1 text**, which `build_c.cpp` still
+consumes. Deleting the v1 statement parser or the phrase prefixes in `build_c.cpp` is
+explicitly post-deprecation-window work — see [`docs/SYNTAX_V2_PLAN.md`](docs/SYNTAX_V2_PLAN.md).
+
+## 3) Build and run
+
+From the repository root:
 
 ```bash
 cd vm && make
 ```
 
-Core commands (run from `vm/` unless noted):
+Core commands (from `vm/`):
 
 ```bash
-./build/luke SHOW ../examples/build/hello.luke
+./build/luke SHOW  ../examples/build/hello.luke
 ./build/luke BUILD ../examples/build/hello.luke -o build/hello && ./build/hello
 ./build/luke BUILD ../examples/build/hello_wasm.luke -target wasm -o build/hello.wasm
+./build/luke MIGRATE ../examples/v1_archive/build/hello.luke
+./build/luke FMT   ../examples/build/hello.luke
 ./build/luke LSP
 ./build/luke DAP
 ./build/luke DEBUG ../examples/build/functions.luke --break 10 --batch
 make test
 ```
 
-Optional toolchain:
+Optional toolchain, each needed only by the feature that uses it:
 
-- WASM/browser output needs WASI SDK at `.tools/wasi-sdk` or `LUKE_WASI_SDK`.
-- Browser/WASI smoke scripts use Node.js.
-- Debugger checks require `gdb`.
+- WebAssembly and browser targets: WASI SDK at `.tools/wasi-sdk`, or `LUKE_WASI_SDK`
+- `import std/sqlite`: `libsqlite3-dev` · `import std/auth`: `libsodium-dev` ·
+  `import std/pg`: `libpq-dev` and a reachable Postgres
+- `luke DEBUG` / `luke DAP` and their tests: `gdb`
+- Headless browser and WASI smoke scripts: Node.js
 
-## 3) Canonical examples (use these before inventing syntax)
+The compiler passes `-DLUKE_HAVE_SQLITE` / `-DLUKE_HAVE_SODIUM` / `-DLUKE_HAVE_PG` only when
+the matching module is imported, and the runtime headers gate their system includes on those
+defines. **If you add a runtime header that pulls in a third-party system header, gate it the
+same way** — otherwise hello-world stops building on a clean machine.
 
-Build/core:
+## 4) Canonical examples — read one before inventing syntax
 
-- `examples/build/hello.luke`
-- `examples/build/functions.luke`
-- `examples/build/modules.luke`
-- `examples/build/collections.luke`
+The examples are the acceptance suite, not illustrations. If your code does not look like
+them, your code is wrong.
 
-Backend:
+Core: `examples/build/hello.luke` · `functions.luke` · `oop.luke` · `collections.luke` ·
+`modules.luke` · `arena_scope.luke`
 
-- `examples/build/backend_api.luke`
-- `examples/build/backend_form_errors.luke`
-- `examples/build/pg_api.luke`
+Reactive: `reactive_core.luke` · `reactive_conformance_batch.luke` ·
+`reactive_conformance_order.luke` · `reactive_conformance_memory.luke` ·
+`reactive_conformance_error.luke`
 
-Reactive/Live Graph:
+Live Graph: `live_graph_server.luke` · `live_graph_client.luke` · `live_graph_join.luke` ·
+`live_graph_agg.luke` · `examples/deploy/wall/`
 
-- `examples/build/reactive_core.luke`
-- `examples/build/live_graph_server.luke`
-- `examples/build/live_graph_client.luke`
-- `examples/build/live_graph_join_multi.luke`
+Backend: `backend_api.luke` · `auth_api.luke` · `http_c10k_ok.luke` · `pg_api.luke` ·
+`sql_bind.luke`
 
-Frontend (already shipped track):
+Frontend: `frontend_widgets.luke` · `frontend_done.luke` · `reactive_list_ui.luke` ·
+`web_app.luke`
 
-- `examples/build/frontend_widgets.luke`
-- `examples/build/frontend_wrap_forms.luke`
-- `sample/landing.luke`
+Golden v2 corpus with hand-written twins: `examples/v2/*.lk`
 
-## 4) Compiler/diagnostic workflow
+Programs that **must fail** to compile: `bad_types.luke` · `bad_arity.luke` ·
+`auth_secret_bad_bind.luke` · `backend_mw_bad_order.luke`. CI fails if any of them succeeds.
 
-When changing parser, analyzer, compiler, LSP, DAP, or runtime-facing behavior:
+## 5) Gates — what has to be green
 
-1. Run a focused command first (single example).
-2. Run targeted script checks.
-3. Run `make test` before finalizing.
+```bash
+cd vm
+make                 # toolchain
+make test            # test-play + test-build (the full gate)
+make test-play       # Play VM paths
+make test-build      # Build, reactive, Live Graph, frontend, debugger, LSP, DAP
+make test-syntax-v2  # spec coverage, corpus pairing, v1↔v2 equivalence
+make test-lsp        # language server providers
+make test-fmt-roundtrip
+```
 
-Useful checks:
+Focused scripts:
 
 ```bash
 bash scripts/debug_break_step.sh
@@ -87,80 +137,92 @@ bash scripts/debug_inspect.sh
 bash scripts/dap_handshake.sh
 bash scripts/lsp_providers.sh
 bash scripts/fmt_roundtrip_all.sh
+bash scripts/syntax_v2_equiv.sh
+python3 scripts/syntax_v2_spec_check.py
+python3 scripts/syntax_v2_corpus_check.py
 ```
 
-Diagnostics and formatter come from shared AST/build pipeline. Keep one truth path.
+Run a single example first, then the focused script, then `make test`. If the full gate is too
+slow while iterating, state exactly which subset you ran.
 
-## 5) Tests and quality gates
+## 6) The website is generated — regenerate it or CI fails
 
-Minimum expected before landing substantive runtime/tooling edits:
-
-- `cd vm && make`
-- `cd vm && make test-play` (if VM behavior touched)
-- `cd vm && make test-build` (if Build/compiler/runtime touched)
-- `cd vm && make test-lsp` (if editor/tooling touched)
-- `cd vm && make test` for full gate
-
-If full gate is too slow during iteration, document exactly which subset ran.
-
-## 6) Code search patterns (fast navigation)
-
-Use `rg` from repo root:
+`site/` is the deployed lukelang.org. Two parts of it are **generated from the repository**:
 
 ```bash
-rg "THIS IS FUNCTION|REMEMBER|WHEN REACTIVE|WATCH|PUSH WATCH" vm/src/luke_parse.cpp
-rg "luke LSP|LSP|hover|completion|semanticTokens" vm/src/lsp.cpp scripts/lsp_providers.sh
-rg "DEBUG|DAP|gdb|inspect" vm/src/main.cpp vm/src/dap.cpp scripts/debug_*.sh
-rg "httpServe|dbExecBind|dbQueryBind|pgQueryBind|pgExecBind" vm/runtime vm/stdlib examples/build
+python3 scripts/build_site_docs.py   # docs/*.md + documentations/papers/*.md → site/docs/
+python3 scripts/build_site_meta.py   # canonical/OG/JSON-LD, sitemap.xml, robots.txt
 ```
 
-## 7) Module boundaries (keep architecture clean)
+**If you edit any file under `docs/` or `documentations/papers/`, run both and commit the
+result.** The `site-docs` CI job regenerates and fails when the committed HTML has drifted.
 
-Compiler/runtime boundaries:
-
-- `vm/src/luke_parse.cpp`: language parsing/statement recognition.
-- `vm/src/luke_expr.cpp`: expression parser/eval helpers.
-- `vm/src/build_c.cpp`: Build codegen and type/IR lowering.
-- `vm/src/lsp.cpp`: LSP server over stdio.
-- `vm/src/dap.cpp`: DAP server over stdio (gdb backend).
-- `vm/src/main.cpp`: CLI command surface.
-- `vm/runtime/*.h`: Build runtime helpers (arena, stdlib C bridge, net/db/auth/reactive).
-- `vm/stdlib/*.luke`: Luke-level std modules.
-
-Rule: do not reintroduce a parallel parser/toolchain path just for editor features.
-LSP/FMT/diagnostics should stay aligned with the Build compiler truth.
-
-Editor extension boundary:
-
-- `tools/vscode/lukelang/` — VS Code client only (syntax, snippets, LSP/DAP launchers).
-- Do not duplicate language logic in JS; call `vm/build/luke LSP` / `DAP`.
-
-Package extension:
+Deploy (needs ssh access to the host):
 
 ```bash
-bash scripts/vscode_extension_package.sh
+scripts/deploy_site.sh
 ```
 
-## 8) Backend-first publishing guidance
+`site/status/` is a standalone page for `status.lukelang.org` — self-contained on purpose, so
+it keeps its styling when the main host is down.
 
-If the goal is backend adoption:
+## 7) Module boundaries
 
-- Prioritize `std/server`, `std/sqlite`, `std/pg`, auth/session, migrations.
-- Prefer correctness and diagnostics over syntax novelty.
-- Preserve no-GC Build guarantees and predictable performance.
-- Keep docs and examples runnable from CLI with minimal setup.
+Compiler and runtime:
 
-## 9) Documentation requirements for any feature PR
+| Path | Owns |
+| --- | --- |
+| `vm/src/luke2_lex.cpp` | v2 lexer, path/mode rules (`isV2Path`, `wantsV2`) |
+| `vm/src/luke2_parse.cpp` | v2 parser → AST |
+| `vm/src/luke2_lower.cpp` | AST → v1 text for codegen |
+| `vm/src/luke2_migrate.cpp` | v1 → v2 source rewriting |
+| `vm/src/luke_parse.cpp` | v1 statement recognition (deprecation window) |
+| `vm/src/luke_expr.cpp` | v1 expression parsing |
+| `vm/src/build_c.cpp` | Build codegen, types, IR lowering, linked libraries |
+| `vm/src/lsp.cpp` / `dap.cpp` | LSP and DAP over stdio |
+| `vm/src/main.cpp` | CLI surface, compiler invocation, feature defines |
+| `vm/runtime/*.h` | Build runtime — arena, net, db, auth, reactive, layout |
+| `vm/stdlib/*.luke` | Standard library, written in LukeLang |
 
-When adding/changing language behavior, include:
+**Rule:** do not add a parallel parser or toolchain path for editor features. LSP, FMT and
+diagnostics stay on the Build compiler's truth.
 
-1. Doc update in `docs/` (or explicitly explain why not needed).
-2. At least one canonical example under `examples/build/` (or tests proving behavior).
-3. Regression test coverage in existing gates.
-4. Clear command(s) to reproduce and verify.
+Editor extension: `tools/vscode/lukelang/` is a thin client. It launches
+`vm/build/luke LSP` / `DAP`. Do not reimplement language logic in JavaScript.
 
-## 10) Known non-goals while backend-first
+```bash
+bash scripts/vscode_extension_package.sh   # build the .vsix
+```
 
-- Do not shift core effort to mobile/game tracks.
-- Do not add heavy ecosystem/distribution work unless requested.
-- Do not prioritize stylistic syntax rewrites over backend + Live Graph milestones.
+## 8) Search patterns
+
+```bash
+rg "fn |let |struct |signal |derived |effect on|watch |push watch" examples/build
+rg "isV2Path|wantsV2|maybeLowerSource|SyntaxMode" vm/src
+rg "THIS IS FUNCTION|MY NAME IS|SPEAK |REMEMBER " vm/src/luke_parse.cpp   # v1 surface
+rg "linkLibs|LUKE_HAVE_" vm/src/build_c.cpp vm/src/main.cpp
+rg "hover|completion|semanticTokens" vm/src/lsp.cpp scripts/lsp_providers.sh
+rg "httpServe|dbExecBind|dbQueryBind|pgQueryBind" vm/runtime vm/stdlib examples/build
+```
+
+## 9) What a feature PR must include
+
+1. Documentation in `docs/` — or an explicit reason none is needed.
+2. At least one example under `examples/` that CI compiles and asserts on.
+3. Regenerated `site/docs/` if any Markdown changed.
+4. A green `make test`, and the exact commands to reproduce.
+5. If it changes the language surface, the same commit updates
+   [`docs/SYNTAX_V2_SPEC.md`](docs/SYNTAX_V2_SPEC.md) — the spec is machine-checked against
+   codegen and will fail otherwise.
+
+Label anything provisional as provisional, in the document and in
+[`docs/SCORECARD.md`](docs/SCORECARD.md). An honest "not proven yet" is worth more here than a
+confident claim the tests do not back.
+
+## 10) Non-goals while backend-first
+
+- Do not shift effort to mobile, game or canvas tracks.
+- Do not add distribution or ecosystem work unless asked.
+- Do not do stylistic syntax rewrites ahead of backend and Live Graph milestones.
+- Do not delete the v1 parser or the `build_c.cpp` phrase prefixes — that is scheduled work,
+  not cleanup.

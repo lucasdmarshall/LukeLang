@@ -1,7 +1,9 @@
 # Getting Started with LukeLang
 
-LukeLang is **Build-first**: technical syntax (`.lk`) → native / WASM via `vm/`.
-Conversational `.luke` still works during the dual-syntax window.
+LukeLang is **Build-first**: technical syntax → native or WebAssembly via `vm/`.
+
+Both `.lk` and `.luke` are syntax v2. The conversational v1 surface is still available for the
+deprecation window behind `luke --syntax=1`, and `luke MIGRATE` rewrites old sources into v2.
 
 ## Install
 
@@ -44,6 +46,15 @@ Create `hello.luke`:
 
 ```luke
 print("Hello, World!")
+
+let name = "Luke"
+print("My name is " + name)
+
+fn add(a: float, b: float) -> float {
+  return a + b
+}
+
+print(add(21, 21))
 ```
 
 ## Run it
@@ -60,7 +71,35 @@ You should see:
 
 ```text
 Hello, World!
+My name is Luke
+42
 ```
+
+## Then make something change on its own
+
+Reactive cells are language, not a library. This is the shortest program that shows the idea:
+
+```luke
+signal price = 100
+signal quantity = 3
+derived total = price * quantity
+
+effect on total {
+  print("total=" + total)
+}
+
+price = 200
+```
+
+```text
+total=300
+total=600
+```
+
+You never told `total` to recompute, and you never subscribed to `price`. Declaring the
+dependency was the whole instruction. [`REACTIVE.md`](./REACTIVE.md) covers batching, effect
+ordering and scopes; [`LIVE_GRAPH.md`](./LIVE_GRAPH.md) extends the same model across the
+network, so a database row can reach a pixel the same way.
 
 Browser ship:
 

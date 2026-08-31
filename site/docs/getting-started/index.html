@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Getting started — LukeLang</title>
-<meta name="description" content="LukeLang is Build-first: technical syntax (.lk) → native / WASM via vm/. Conversational .luke still works during the dual-syntax window." />
+<meta name="description" content="LukeLang is Build-first: technical syntax → native or WebAssembly via vm/." />
 <meta name="theme-color" content="#050806" />
 <link rel="icon" href="../../assets/favicon.png" type="image/png" />
 <!-- seo:begin -->
@@ -17,16 +17,16 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://lukelang.org/docs/getting-started/" />
 <meta property="og:title" content="Getting started — LukeLang" />
-<meta property="og:description" content="LukeLang is Build-first: technical syntax (.lk) → native / WASM via vm/. Conversational .luke still works during the dual-syntax window." />
+<meta property="og:description" content="LukeLang is Build-first: technical syntax → native or WebAssembly via vm/." />
 <meta property="og:image" content="https://lukelang.org/assets/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="LukeLang — Myanmar's first official programming language" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Getting started — LukeLang" />
-<meta name="twitter:description" content="LukeLang is Build-first: technical syntax (.lk) → native / WASM via vm/. Conversational .luke still works during the dual-syntax window." />
+<meta name="twitter:description" content="LukeLang is Build-first: technical syntax → native or WebAssembly via vm/." />
 <meta name="twitter:image" content="https://lukelang.org/assets/og.png" />
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"TechArticle","headline":"Getting started","description":"LukeLang is Build-first: technical syntax (.lk) \u2192 native / WASM via vm/. Conversational .luke still works during the dual-syntax window.","url":"https://lukelang.org/docs/getting-started/","author":{"@id":"https://lukelang.org/#author"},"isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://lukelang.org/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://lukelang.org/docs/"},{"@type":"ListItem","position":3,"name":"Getting started","item":"https://lukelang.org/docs/getting-started/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"TechArticle","headline":"Getting started","description":"LukeLang is Build-first: technical syntax \u2192 native or WebAssembly via vm/.","url":"https://lukelang.org/docs/getting-started/","author":{"@id":"https://lukelang.org/#author"},"isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://lukelang.org/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://lukelang.org/docs/"},{"@type":"ListItem","position":3,"name":"Getting started","item":"https://lukelang.org/docs/getting-started/"}]}]}</script>
 <!-- seo:end -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -141,14 +141,16 @@
         <li><a href="#what-lukelang-needs-on-your-machine-and-why">What LukeLang needs on your machine (and why)</a></li>
         <li><a href="#your-first-program">Your first program</a></li>
         <li><a href="#run-it">Run it</a></li>
+        <li><a href="#then-make-something-change-on-its-own">Then make something change on its own</a></li>
         <li><a href="#next">Next</a></li>
       </ul>
       </div>
     </aside>
 
     <article class="prose prose--doc">
-<p>LukeLang is <strong>Build-first</strong>: technical syntax (<code>.lk</code>) → native / WASM via <code>vm/</code>.
-Conversational <code>.luke</code> still works during the dual-syntax window.</p>
+<p>LukeLang is <strong>Build-first</strong>: technical syntax → native or WebAssembly via <code>vm/</code>.</p>
+<p>Both <code>.lk</code> and <code>.luke</code> are syntax v2. The conversational v1 surface is still available for the
+deprecation window behind <code>luke --syntax=1</code>, and <code>luke MIGRATE</code> rewrites old sources into v2.</p>
 <h2 id="install">Install</h2>
 <ol>
 <li>Clone the repo and enter it:</li>
@@ -182,12 +184,20 @@ Conversational <code>.luke</code> still works during the dual-syntax window.</p>
 <strong>install build tools -&gt; build <code>luke</code> -&gt; compile your <code>.lk</code> app to a native binary</strong>.</p>
 <h2 id="your-first-program">Your first program</h2>
 <p>Create <code>hello.luke</code>:</p>
-<pre><code><span class="ln"><b class="fn">print</b>(<b class="str">&quot;Hello, World!&quot;</b>)</span></code></pre>
+<pre><code><span class="ln"><b class="fn">print</b>(<b class="str">&quot;Hello, World!&quot;</b>)</span><span class="ln"></span><span class="ln"><b class="kw">let</b> name = <b class="str">&quot;Luke&quot;</b></span><span class="ln"><b class="fn">print</b>(<b class="str">&quot;My name is &quot;</b> + name)</span><span class="ln"></span><span class="ln"><b class="kw">fn</b> <b class="fn">add</b>(a: <b class="ty">float</b>, b: <b class="ty">float</b>) -&gt; <b class="ty">float</b> {</span><span class="ln">  <b class="kw">return</b> a + b</span><span class="ln">}</span><span class="ln"></span><span class="ln"><b class="fn">print</b>(<b class="fn">add</b>(<b class="num">21</b>, <b class="num">21</b>))</span></code></pre>
 <h2 id="run-it">Run it</h2>
 <p>From <code>vm/</code>:</p>
 <pre><code><span class="ln"><b class="sh">./build/luke</b> BUILD ../path/to/hello.luke -o hello &amp;&amp; ./hello</span><span class="ln"><b class="cm"># or:</b></span><span class="ln"><b class="sh">./build/luke</b> SHOW ../path/to/hello.luke</span></code></pre>
 <p>You should see:</p>
-<pre><code><span class="ln">Hello, World!</span></code></pre>
+<pre><code><span class="ln">Hello, World!</span><span class="ln">My name is Luke</span><span class="ln">42</span></code></pre>
+<h2 id="then-make-something-change-on-its-own">Then make something change on its own</h2>
+<p>Reactive cells are language, not a library. This is the shortest program that shows the idea:</p>
+<pre><code><span class="ln"><b class="kw">signal</b> price = <b class="num">100</b></span><span class="ln"><b class="kw">signal</b> quantity = <b class="num">3</b></span><span class="ln"><b class="kw">derived</b> total = price * quantity</span><span class="ln"></span><span class="ln"><b class="kw">effect on</b> total {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;total=&quot;</b> + total)</span><span class="ln">}</span><span class="ln"></span><span class="ln">price = <b class="num">200</b></span></code></pre>
+<pre><code><span class="ln">total=300</span><span class="ln">total=600</span></code></pre>
+<p>You never told <code>total</code> to recompute, and you never subscribed to <code>price</code>. Declaring the
+dependency was the whole instruction. <a href="../reactive/"><code>REACTIVE.md</code></a> covers batching, effect
+ordering and scopes; <a href="../live-graph/"><code>LIVE_GRAPH.md</code></a> extends the same model across the
+network, so a database row can reach a pixel the same way.</p>
 <p>Browser ship:</p>
 <pre><code><span class="ln"><b class="sh">./build/luke</b> PUBLISH WEB ../examples/build/frontend_widgets.luke -o /tmp/luke_web</span></code></pre>
 <h2 id="next">Next</h2>

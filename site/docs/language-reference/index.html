@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Language reference — LukeLang</title>
-<meta name="description" content="This document provides a comprehensive reference for the LukeLang programming language, covering its syntax, data types, control flow, functions, and object-oriented programming fe" />
+<meta name="description" content="The syntax v2 surface, which is what .lk and .luke files use. Every form here is drawn from SYNTAX_V2_SPEC.md, which is machine-checked against code generation — if the two disagre" />
 <meta name="theme-color" content="#050806" />
 <link rel="icon" href="../../assets/favicon.png" type="image/png" />
 <!-- seo:begin -->
@@ -17,16 +17,16 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://lukelang.org/docs/language-reference/" />
 <meta property="og:title" content="Language reference — LukeLang" />
-<meta property="og:description" content="This document provides a comprehensive reference for the LukeLang programming language, covering its syntax, data types, control flow, functions, and object-oriented programming fe" />
+<meta property="og:description" content="The syntax v2 surface, which is what .lk and .luke files use. Every form here is drawn from SYNTAX_V2_SPEC.md, which is machine-checked against code generation — if the two disagre" />
 <meta property="og:image" content="https://lukelang.org/assets/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="LukeLang — Myanmar's first official programming language" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Language reference — LukeLang" />
-<meta name="twitter:description" content="This document provides a comprehensive reference for the LukeLang programming language, covering its syntax, data types, control flow, functions, and object-oriented programming fe" />
+<meta name="twitter:description" content="The syntax v2 surface, which is what .lk and .luke files use. Every form here is drawn from SYNTAX_V2_SPEC.md, which is machine-checked against code generation — if the two disagre" />
 <meta name="twitter:image" content="https://lukelang.org/assets/og.png" />
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"TechArticle","headline":"Language reference","description":"This document provides a comprehensive reference for the LukeLang programming language, covering its syntax, data types, control flow, functions, and object-oriented programming fe","url":"https://lukelang.org/docs/language-reference/","author":{"@id":"https://lukelang.org/#author"},"isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://lukelang.org/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://lukelang.org/docs/"},{"@type":"ListItem","position":3,"name":"Language reference","item":"https://lukelang.org/docs/language-reference/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"TechArticle","headline":"Language reference","description":"The syntax v2 surface, which is what .lk and .luke files use. Every form here is drawn from SYNTAX_V2_SPEC.md, which is machine-checked against code generation \u2014 if the two disagre","url":"https://lukelang.org/docs/language-reference/","author":{"@id":"https://lukelang.org/#author"},"isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://lukelang.org/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://lukelang.org/docs/"},{"@type":"ListItem","position":3,"name":"Language reference","item":"https://lukelang.org/docs/language-reference/"}]}]}</script>
 <!-- seo:end -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -137,68 +137,232 @@
       </ul>
       <h2>On this page</h2>
       <ul>
-        <li><a href="#1-variables-and-data-types">1. Variables and Data Types</a></li>
+        <li><a href="#1-values-and-bindings">1. Values and bindings</a></li>
         <li><a href="#2-operators">2. Operators</a></li>
-        <li><a href="#3-control-flow">3. Control Flow</a></li>
+        <li><a href="#3-control-flow">3. Control flow</a></li>
         <li><a href="#4-functions">4. Functions</a></li>
-        <li><a href="#5-classes-and-oop">5. Classes and OOP</a></li>
-        <li><a href="#multiple-inheritance-mixin-based">Multiple Inheritance (Mixin-Based)</a></li>
+        <li><a href="#5-structs">5. Structs</a></li>
+        <li><a href="#6-collections">6. Collections</a></li>
+        <li><a href="#7-errors">7. Errors</a></li>
+        <li><a href="#8-reactive-cells">8. Reactive cells</a></li>
+        <li><a href="#9-modules">9. Modules</a></li>
+        <li><a href="#10-live-graph">10. Live Graph</a></li>
+        <li><a href="#11-memory">11. Memory</a></li>
+        <li><a href="#12-tests-and-benchmarks">12. Tests and benchmarks</a></li>
+        <li><a href="#13-escaping-to-the-conversational-surface">13. Escaping to the conversational surface</a></li>
       </ul>
       </div>
     </aside>
 
     <article class="prose prose--doc">
-<p>This document provides a comprehensive reference for the LukeLang programming language, covering its syntax, data types, control flow, functions, and object-oriented programming features.</p>
-<h2 id="1-variables-and-data-types">1. Variables and Data Types</h2>
-<p>In LukeLang, variables are declared using the <code>LET</code> or <code>VAR</code> keywords, followed by the variable name and an optional initial value.</p>
-<h3 id="declaration">Declaration</h3>
-<pre><code><span class="ln"><b class="cm">// Verbose declaration</b></span><span class="ln">LET myVariable BE <b class="num">10</b></span><span class="ln">VAR anotherVariable BE <b class="str">&quot;Hello&quot;</b></span><span class="ln"></span><span class="ln"><b class="cm">// Shorthand declaration</b></span><span class="ln">myVariable = <b class="num">10</b></span><span class="ln">anotherVariable = <b class="str">&quot;Hello&quot;</b></span></code></pre>
-<h3 id="data-types">Data Types</h3>
-<p>LukeLang supports the following data types:
--   <strong>Numbers</strong>: <code>10</code>, <code>3.14</code>
--   <strong>Strings</strong>: <code>"Hello"</code>, <code>'World'</code>
--   <strong>Booleans</strong>: <code>TRUE</code>, <code>FALSE</code>
--   <strong>Lists (Arrays)</strong>: <code>[1, 2, 3]</code>, <code>["apple", "banana"]</code>
--   <strong>Objects</strong>: Handled through classes.</p>
+<p>The syntax v2 surface, which is what <code>.lk</code> and <code>.luke</code> files use. Every form here is drawn from
+<a href="../syntax-v2-spec/"><code>SYNTAX_V2_SPEC.md</code></a>, which is machine-checked against code generation —
+if the two disagree, the spec is right and this page is the bug.</p>
+<p>The conversational v1 surface is documented in the spec's mapping tables and remains available
+behind <code>luke --syntax=1</code> for the deprecation window.</p>
+<h2 id="1-values-and-bindings">1. Values and bindings</h2>
+<p><code>let</code> binds a value you will not reassign. <code>var</code> binds one you will.</p>
+<pre><code><span class="ln"><b class="kw">let</b> name = <b class="str">&quot;Luke&quot;</b></span><span class="ln"><b class="kw">var</b> count = <b class="num">0</b></span><span class="ln">count = count + <b class="num">1</b></span></code></pre>
+<p>Types are optional where the compiler can infer them and required where it cannot — most often
+around <code>+</code>, which is both arithmetic and concatenation:</p>
+<pre><code><span class="ln"><b class="kw">let</b> a: <b class="ty">int</b> = <b class="num">21</b></span><span class="ln"><b class="kw">var</b> total: <b class="ty">float</b> = <b class="num">0</b></span><span class="ln"><b class="kw">let</b> greeting: <b class="ty">str</b> = <b class="str">&quot;hello&quot;</b></span><span class="ln"><b class="kw">let</b> ready: <b class="ty">bool</b> = <b class="kw">false</b></span></code></pre>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int</code></td>
+<td>Exact integer — see <a href="../integer/"><code>INTEGER.md</code></a> for the exactness rules</td>
+</tr>
+<tr>
+<td><code>float</code></td>
+<td>Double-precision number</td>
+</tr>
+<tr>
+<td><code>str</code></td>
+<td>Text</td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>true</code> / <code>false</code></td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td>Ordered values</td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td>Key to value</td>
+</tr>
+<tr>
+<td><code>json</code></td>
+<td>Parsed JSON tree</td>
+</tr>
+<tr>
+<td><code>Server</code>, <code>Request</code>, <code>Db</code></td>
+<td>Standard library handles</td>
+</tr>
+<tr>
+<td><code>Foo</code></td>
+<td>Any <code>struct</code> you declared</td>
+</tr>
+</tbody>
+</table>
+<p>A declaration without an initialiser is mutable and needs its type:</p>
+<pre><code><span class="ln"><b class="kw">var</b> buffer: <b class="ty">str</b></span><span class="ln"><b class="kw">var</b> items: <b class="ty">list</b> = []</span><span class="ln"><b class="kw">var</b> index: <b class="ty">map</b> = {}</span></code></pre>
 <h2 id="2-operators">2. Operators</h2>
-<p>LukeLang supports standard arithmetic, comparison, and logical operators.</p>
-<ul>
-<li><strong>Arithmetic</strong>: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code></li>
-<li><strong>Comparison</strong>: <code>IS</code>, <code>IS NOT</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code></li>
-<li><strong>Logical</strong>: <code>AND</code>, <code>OR</code>, <code>NOT</code></li>
-</ul>
-<h2 id="3-control-flow">3. Control Flow</h2>
-<h3 id="conditional-statements">Conditional Statements</h3>
-<pre><code><span class="ln"><b class="kw">if</b> condition THEN {</span><span class="ln">} <b class="kw">else</b> {</span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;ELSE&quot;</b></span><span class="ln">}</span></code></pre>
-<h3 id="loops">Loops</h3>
-<p><strong>While Loop</strong></p>
-<pre><code><span class="ln">WHILE condition</span><span class="ln">  <b class="cm">// Code to repeat as long as condition is true</b></span><span class="ln">END WHILE</span></code></pre>
-<p><strong>For Loop</strong></p>
-<pre><code><span class="ln">FOR i FROM <b class="num">0</b> TO <b class="num">10</b></span><span class="ln">  <b class="cm">// Code to repeat 10 times</b></span><span class="ln">END FOR</span></code></pre>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Operators</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Arithmetic</td>
+<td><code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code></td>
+</tr>
+<tr>
+<td>Comparison</td>
+<td><code>==</code> <code>!=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td>
+</tr>
+<tr>
+<td>Logical</td>
+<td><code>&amp;&amp;</code> <code>\|\|</code> <code>!</code></td>
+</tr>
+<tr>
+<td>Compound assignment</td>
+<td><code>+=</code> <code>-=</code></td>
+</tr>
+<tr>
+<td>Concatenation</td>
+<td><code>+</code> on <code>str</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>+</code> needs to know whether it is adding or concatenating. If neither operand's type is known,
+the compiler asks you to annotate rather than guessing:</p>
+<pre><code><span class="ln"><b class="kw">fn</b> <b class="fn">describe</b>(n: <b class="ty">float</b>) -&gt; <b class="ty">str</b> {</span><span class="ln">  <b class="kw">return</b> <b class="str">&quot;n=&quot;</b> + n          <b class="cm">// str + float — concatenation</b></span><span class="ln">}</span></code></pre>
+<p><code>%</code> has no Build-mode equivalent yet and is rejected with an error.</p>
+<h2 id="3-control-flow">3. Control flow</h2>
+<pre><code><span class="ln"><b class="kw">if</b> count &gt; <b class="num">10</b> {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;many&quot;</b>)</span><span class="ln">} <b class="kw">else</b> <b class="kw">if</b> count &gt; <b class="num">0</b> {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;some&quot;</b>)</span><span class="ln">} <b class="kw">else</b> {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;none&quot;</b>)</span><span class="ln">}</span></code></pre>
+<pre><code><span class="ln"><b class="kw">while</b> count &gt; <b class="num">0</b> {</span><span class="ln">  <b class="fn">print</b>(count)</span><span class="ln">  count = count - <b class="num">1</b></span><span class="ln">}</span></code></pre>
+<pre><code><span class="ln"><b class="kw">for</b> item <b class="kw">in</b> items {</span><span class="ln">  <b class="fn">print</b>(item)</span><span class="ln">}</span></code></pre>
+<p>Range loops (<code>for i in 0..n</code>) are not part of the surface — use <code>while</code>. <code>break</code> leaves the
+nearest loop.</p>
 <h2 id="4-functions">4. Functions</h2>
-<p>Functions are defined using the <code>ROUTINE</code> or <code>FUNC</code> keyword.</p>
-<pre><code><span class="ln"><b class="cm">// Verbose function</b></span><span class="ln">ROUTINE <b class="fn">add</b>(a, b)</span><span class="ln">  RETURN a + b</span><span class="ln">END ROUTINE</span><span class="ln"></span><span class="ln"><b class="cm">// Shorthand function</b></span><span class="ln">func <b class="fn">multiply</b>(a, b) {</span><span class="ln">  RETURN a * b</span><span class="ln">}</span></code></pre>
-<h2 id="5-classes-and-oop">5. Classes and OOP</h2>
-<p>LukeLang provides robust support for object-oriented programming, including classes, inheritance, and methods.</p>
-<h3 id="class-definition">Class Definition</h3>
-<pre><code><span class="ln"><b class="kw">struct</b> Ticket { {</span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;init(ticketPrice, totalSeats) {&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;price = ticketPrice&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;seats = totalSeats&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;}&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;book(num) {&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;seats = seats - num&quot;</b></span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;Booked &quot;</b> + num + <b class="str">&quot; seats&quot;</b>)</span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;}&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;}&quot;</b></span><span class="ln">}</span></code></pre>
+<pre><code><span class="ln"><b class="kw">fn</b> <b class="fn">add</b>(a: <b class="ty">float</b>, b: <b class="ty">float</b>) -&gt; <b class="ty">float</b> {</span><span class="ln">  <b class="kw">return</b> a + b</span><span class="ln">}</span><span class="ln"></span><span class="ln"><b class="kw">fn</b> <b class="fn">greet</b>(name: <b class="ty">str</b>) {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;Hello, &quot;</b> + name)</span><span class="ln">}</span><span class="ln"></span><span class="ln"><b class="fn">print</b>(<b class="fn">add</b>(<b class="num">21</b>, <b class="num">21</b>))</span><span class="ln"><b class="fn">greet</b>(<b class="str">&quot;Luke&quot;</b>)</span></code></pre>
+<p>The return type is optional; omit <code>-&gt;</code> when the function returns nothing. Parameters carry
+types wherever Build mode needs them, which is most places.</p>
+<p>Functions nest, and an inner function captures the enclosing scope:</p>
+<pre><code><span class="ln"><b class="kw">fn</b> <b class="fn">makeAdder</b>(x: <b class="ty">float</b>) {</span><span class="ln">  <b class="kw">fn</b> <b class="fn">add</b>(y: <b class="ty">float</b>) -&gt; <b class="ty">float</b> {</span><span class="ln">    <b class="kw">return</b> x + y</span><span class="ln">  }</span><span class="ln">  <b class="kw">return</b> add</span><span class="ln">}</span></code></pre>
+<h2 id="5-structs">5. Structs</h2>
+<p>A <code>struct</code> is a blueprint: fields, an <code>init</code> constructor, and methods. <code>self</code> is the instance.</p>
+<pre><code><span class="ln"><b class="kw">struct</b> Animal {</span><span class="ln">  name: <b class="ty">str</b></span><span class="ln">  sound = <b class="str">&quot;…&quot;</b></span><span class="ln"></span><span class="ln">  <b class="fn">init</b>(name: <b class="ty">str</b>) {</span><span class="ln">    <b class="kw">self</b>.name = name</span><span class="ln">  }</span><span class="ln"></span><span class="ln">  <b class="kw">fn</b> <b class="fn">speak</b>() {</span><span class="ln">    <b class="fn">print</b>(<b class="kw">self</b>.name + <b class="str">&quot; says &quot;</b> + <b class="kw">self</b>.sound)</span><span class="ln">  }</span><span class="ln">}</span></code></pre>
+<p>Fields declare a type (<code>name: str</code>) or an initialiser (<code>sound = "…"</code>), and <code>private</code> keeps a
+field or method out of reach from outside:</p>
+<pre><code><span class="ln"><b class="kw">struct</b> Vault {</span><span class="ln">  secret: <b class="ty">str</b></span><span class="ln">  <b class="kw">private</b> <b class="kw">fn</b> <b class="kw">raw</b>() -&gt; <b class="ty">str</b> {</span><span class="ln">    <b class="kw">return</b> <b class="kw">self</b>.secret</span><span class="ln">  }</span><span class="ln">  <b class="kw">fn</b> <b class="fn">reveal</b>() -&gt; <b class="ty">str</b> {</span><span class="ln">    <b class="kw">return</b> <b class="kw">self</b>.<b class="kw">raw</b>()</span><span class="ln">  }</span><span class="ln">}</span></code></pre>
 <h3 id="inheritance">Inheritance</h3>
-<pre><code><span class="ln"><b class="kw">struct</b> ConcertTicket : Ticket { {</span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;artist&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;init(artistName, price, seats) {&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;PARENT TAKES price, seats&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;artist = artistName&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;}&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;showInfo() {&quot;</b></span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;Artist: &quot;</b> + artist)</span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;}&quot;</b></span><span class="ln">  <b class="kw">raw</b> <b class="str">&quot;}&quot;</b></span><span class="ln">}</span></code></pre>
-<p>For more details on advanced features, refer to the <strong><a href="../advanced-topics/">Advanced Topics</a></strong> guide.</p>
-<h2 id="multiple-inheritance-mixin-based">Multiple Inheritance (Mixin-Based)</h2>
-<p>LukeLang supports declaring multiple parents via <code>FOLLOWS &lt;BaseA&gt; AND &lt;BaseB&gt;</code> on the <strong>Play VM</strong> path. Build blueprints currently use a single <code>FOLLOWS</code> parent — prefer that for <code>luke BUILD</code> programs.</p>
-<h3 id="explicit-ancestor-calls">Explicit Ancestor Calls</h3>
-<p>When a class has multiple parents (Play VM), <code>CALL PARENT &lt;method&gt;</code> refers to the primary base. To invoke a specific ancestor’s implementation, use:</p>
-<ul>
-<li><code>CALL PARENT &lt;method&gt; OF &lt;Ancestor&gt; WITH &lt;args&gt;</code></li>
-</ul>
-<h3 id="example">Example</h3>
-<pre><code><span class="ln">BLUEPRINT Bird IMPLEMENTS Flyable DO</span><span class="ln">  METHOD fly WITH height DO</span><span class="ln">    SPEAK &quot;Bird flying at &quot; AND height AND &quot; meters high&quot;</span><span class="ln">  END METHOD</span><span class="ln">END CLASS</span><span class="ln"></span><span class="ln">BLUEPRINT Fish IMPLEMENTS Swimmable DO</span><span class="ln">  METHOD swim WITH speed DO</span><span class="ln">    SPEAK &quot;Fish swimming smoothly at &quot; AND speed AND &quot; m/s&quot;</span><span class="ln">  END METHOD</span><span class="ln">END CLASS</span><span class="ln"></span><span class="ln">BLUEPRINT Duck FOLLOWS Bird AND Fish IMPLEMENTS Flyable AND Swimmable DO</span><span class="ln">  WHEN BORN DO</span><span class="ln">  END BORN</span><span class="ln"></span><span class="ln">  METHOD fly WITH height DO</span><span class="ln">    CALL PARENT fly WITH height</span><span class="ln">    SPEAK &quot;Duck flapping wings cutely at &quot; AND height AND &quot; meters&quot;</span><span class="ln">  END METHOD</span><span class="ln"></span><span class="ln">  METHOD swim WITH speed DO</span><span class="ln">    CALL PARENT swim OF Fish WITH speed</span><span class="ln">    SPEAK &quot;Duck paddling in circles at &quot; AND speed AND &quot; m/s&quot;</span><span class="ln">  END METHOD</span><span class="ln">END CLASS</span></code></pre>
-<p>Output:</p>
-<pre><code><span class="ln">Bird flying at 10 meters high</span><span class="ln">Duck flapping wings cutely at 10 meters</span><span class="ln">Fish swimming smoothly at 2 m/s</span><span class="ln">Duck paddling in circles at 2 m/s</span></code></pre>
-<h3 id="composition-alternative">Composition Alternative</h3>
-<p>If you prefer explicit composition rather than mixins, you can model the second parent as a field and delegate:</p>
-<pre><code><span class="ln">HAS fishPart SET TO NEW Fish</span><span class="ln">METHOD swim WITH speed DO</span><span class="ln">  CALL fishPart swim WITH speed</span><span class="ln">  SPEAK &quot;Duck paddling in circles at &quot; AND speed AND &quot; m/s&quot;</span><span class="ln">END METHOD</span></code></pre>
+<pre><code><span class="ln"><b class="kw">struct</b> Dog : Animal {</span><span class="ln">  sound = <b class="str">&quot;Woof!&quot;</b></span><span class="ln"></span><span class="ln">  <b class="kw">fn</b> <b class="fn">speak</b>() {</span><span class="ln">    <b class="kw">super</b>.<b class="fn">speak</b>()</span><span class="ln">    <b class="fn">print</b>(<b class="kw">self</b>.name + <b class="str">&quot; wags happily.&quot;</b>)</span><span class="ln">  }</span><span class="ln">}</span></code></pre>
+<p><code>super.m()</code> calls the parent's implementation. Construct with the struct name:</p>
+<pre><code><span class="ln"><b class="kw">let</b> buddy = <b class="fn">Dog</b>(<b class="str">&quot;Rex&quot;</b>)</span><span class="ln">buddy.<b class="fn">speak</b>()</span></code></pre>
+<p>Instances live in an arena released at scope exit — there is no garbage collector on the Build
+path. <code>drop(x)</code> releases one early.</p>
+<p>Multiple inheritance and <code>trait</code> contracts exist only on the Play VM path today, using the
+conversational surface; see <a href="../advanced-topics/"><code>advanced_topics.md</code></a>.</p>
+<h2 id="6-collections">6. Collections</h2>
+<pre><code><span class="ln"><b class="kw">var</b> xs: <b class="ty">list</b> = []</span><span class="ln">xs.<b class="fn">push</b>(<b class="str">&quot;Ada&quot;</b>)</span><span class="ln"><b class="fn">print</b>(xs[<b class="num">0</b>])</span><span class="ln"><b class="fn">print</b>(xs.<b class="fn">len</b>())</span><span class="ln"><b class="fn">print</b>(xs.<b class="fn">last</b>())</span><span class="ln">xs.<b class="fn">remove</b>(<b class="num">0</b>)</span></code></pre>
+<pre><code><span class="ln"><b class="kw">var</b> m: <b class="ty">map</b> = {}</span><span class="ln">m[<b class="str">&quot;name&quot;</b>] = <b class="str">&quot;Ada&quot;</b></span><span class="ln"><b class="fn">print</b>(m[<b class="str">&quot;name&quot;</b>])</span><span class="ln"><b class="kw">if</b> m.<b class="fn">has</b>(<b class="str">&quot;name&quot;</b>) {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;present&quot;</b>)</span><span class="ln">}</span></code></pre>
+<h2 id="7-errors">7. Errors</h2>
+<pre><code><span class="ln"><b class="kw">try</b> {</span><span class="ln">  <b class="fn">risky</b>()</span><span class="ln">} <b class="kw">catch</b> (e) {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;caught: &quot;</b> + e)</span><span class="ln">}</span><span class="ln"></span><span class="ln"><b class="kw">throw</b> <b class="str">&quot;not allowed&quot;</b></span><span class="ln"><b class="kw">assert</b> count == <b class="num">5</b></span></code></pre>
+<h2 id="8-reactive-cells">8. Reactive cells</h2>
+<p>Cells are language, not a library. This is the part of LukeLang that is genuinely different, so
+<a href="../reactive/"><code>REACTIVE.md</code></a> covers it in depth.</p>
+<pre><code><span class="ln"><b class="kw">signal</b> price = <b class="num">100</b></span><span class="ln"><b class="kw">signal</b> quantity = <b class="num">3</b></span><span class="ln"><b class="kw">derived</b> total = price * quantity</span><span class="ln"></span><span class="ln"><b class="kw">effect on</b> total {</span><span class="ln">  <b class="fn">print</b>(<b class="str">&quot;total=&quot;</b> + total)</span><span class="ln">}</span><span class="ln"></span><span class="ln">price = <b class="num">200</b>              <b class="cm">// total=600</b></span><span class="ln"></span><span class="ln"><b class="kw">batch</b> {</span><span class="ln">  price = <b class="num">120</b></span><span class="ln">  quantity = <b class="num">5</b>           <b class="cm">// still one flush</b></span><span class="ln">}</span></code></pre>
+<table>
+<thead>
+<tr>
+<th>Form</th>
+<th>Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>signal c = e</code></td>
+<td>A cell</td>
+</tr>
+<tr>
+<td><code>secret signal c = e</code></td>
+<td>A cell the compiler refuses to bind into a page</td>
+</tr>
+<tr>
+<td><code>derived t = expr</code></td>
+<td>Recomputed when its inputs change</td>
+</tr>
+<tr>
+<td><code>effect on c { … }</code></td>
+<td>Runs when <code>c</code> changes</td>
+</tr>
+<tr>
+<td><code>effect background on c { … }</code></td>
+<td>Same, at background priority</td>
+</tr>
+<tr>
+<td><code>effect weak on c { … }</code></td>
+<td>Same, without keeping <code>c</code> alive</td>
+</tr>
+<tr>
+<td><code>batch { … }</code></td>
+<td>Many writes, one flush</td>
+</tr>
+<tr>
+<td><code>c.value()</code></td>
+<td>Read without subscribing</td>
+</tr>
+<tr>
+<td><code>c.deps()</code> / <code>c.subs()</code> / <code>c.id()</code></td>
+<td>Graph introspection</td>
+</tr>
+<tr>
+<td><code>why(c)</code></td>
+<td>Trace what last wrote to <code>c</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-modules">9. Modules</h2>
+<pre><code><span class="ln"><b class="kw">import</b> std/server         <b class="cm">// standard library</b></span><span class="ln"><b class="kw">import</b> <b class="str">&quot;./critter.lk&quot;</b>     <b class="cm">// sibling file</b></span><span class="ln"><b class="kw">import</b> luke/greeter       <b class="cm">// package from luke_modules/</b></span></code></pre>
+<p><code>std/*</code> resolves from <code>vm/stdlib/</code>. Relative paths resolve next to the importing file. See
+<a href="../standard-library/"><code>standard_library.md</code></a> for the module list and
+<a href="../build-mode/"><code>BUILD_MODE.md</code></a> for package resolution.</p>
+<h2 id="10-live-graph">10. Live Graph</h2>
+<p>The same cell model crosses the network. A server cell can be backed by a database row and
+pushed to clients; a client cell can be backed by that stream and bound to an element.</p>
+<pre><code><span class="ln"><b class="cm">// server</b></span><span class="ln"><b class="kw">watch</b> user <b class="kw">from</b> db <b class="kw">where</b> <b class="str">&quot;id = 1&quot;</b></span><span class="ln"><b class="kw">push watch</b> user <b class="kw">on</b> req <b class="kw">for</b> <b class="num">50</b> <b class="kw">beats</b> <b class="kw">every</b> <b class="num">50</b> ms</span><span class="ln"></span><span class="ln"><b class="cm">// client</b></span><span class="ln"><b class="kw">signal</b> user = <b class="str">&quot;&quot;</b></span><span class="ln"><b class="fn">bind</b>(<b class="str">&quot;name&quot;</b>, user)</span><span class="ln"><b class="kw">watch</b> user <b class="kw">from</b> <b class="str">&quot;http://127.0.0.1:8798/watch&quot;</b></span></code></pre>
+<p>An external <code>UPDATE</code> becomes one push, one reactive write, and exactly one repainted region.
+<a href="../live-graph/"><code>LIVE_GRAPH.md</code></a> has the wire format, incremental view maintenance and
+resume-from-log.</p>
+<h2 id="11-memory">11. Memory</h2>
+<pre><code><span class="ln"><b class="kw">arena</b> {</span><span class="ln">  <b class="kw">let</b> big = <b class="fn">buildSomething</b>()</span><span class="ln">  <b class="fn">print</b>(big)</span><span class="ln">}                          <b class="cm">// released here</b></span></code></pre>
+<p>Build mode allocates from an arena and frees at scope exit. Nothing is reference-counted and
+nothing is collected in the background. <a href="../build-mode/"><code>BUILD_MODE.md</code></a> covers the details.</p>
+<h2 id="12-tests-and-benchmarks">12. Tests and benchmarks</h2>
+<pre><code><span class="ln">test <b class="str">&quot;addition&quot;</b> {</span><span class="ln">  <b class="kw">assert</b> <b class="fn">add</b>(<b class="num">2</b>, <b class="num">3</b>) == <b class="num">5</b></span><span class="ln">}</span><span class="ln"></span><span class="ln">bench.<b class="fn">sample</b>(elapsed)</span></code></pre>
+<p>Run with <code>luke TEST file.lk</code>.</p>
+<h2 id="13-escaping-to-the-conversational-surface">13. Escaping to the conversational surface</h2>
+<p>Some forms — contracts, statics, layout phrases — are not on the v2 surface yet. <code>raw</code> passes a
+line through untouched:</p>
+<pre><code><span class="ln"><b class="kw">raw</b> <b class="str">&quot;CONTRACT Eater DO&quot;</b></span><span class="ln"><b class="kw">raw</b> <b class="str">&quot;MUST METHOD eat WITH food&quot;</b></span><span class="ln"><b class="kw">raw</b> <b class="str">&quot;END CONTRACT&quot;</b></span><span class="ln"></span><span class="ln"><b class="kw">raw</b> <b class="str">&quot;&quot;</b><b class="str">&quot;WHEN &quot;</b>cta<b class="str">&quot; IS CLICKED DO</span><span class="ln">  OPEN THE MODAL &quot;</b>dlg<b class="str">&quot;</span><span class="ln">END WHEN&quot;</b><b class="str">&quot;&quot;</b></span></code></pre>
+<p><code>luke MIGRATE old.luke</code> rewrites a conversational source into v2 and marks anything it could
+not translate with <code>TODO(migrate)</code>.</p>
+<hr />
+<p>Next: <a href="../build-mode/"><code>BUILD_MODE.md</code></a> for the language of record ·
+<a href="../syntax-v2-spec/"><code>SYNTAX_V2_SPEC.md</code></a> for the normative surface ·
+<a href="../reactive/"><code>REACTIVE.md</code></a> for the reactive engine</p>
       <div class="next">
         <a href="../">← All documents</a>
         <a href="https://github.com/lucasdmarshall/LukeLang/blob/main/docs/language_reference.md">Edit this page on GitHub →</a>
