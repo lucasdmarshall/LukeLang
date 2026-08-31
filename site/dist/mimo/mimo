@@ -4,8 +4,8 @@
 #   curl -fsSL https://lukelang.org/mimo | bash
 #   mimo inject lukelang
 #   mimo init
-#   mimo add greeter
-#   mimo add http
+#   mimo forge greeter
+#   mimo forge http
 #   mimo run
 #
 # Install root:  $MIMO_HOME (default ~/.mimo)
@@ -320,9 +320,9 @@ list_tools() {
       found=1
       echo "  luke/$(basename "$p")"
     done
-    [ "$found" = 1 ] || echo "  (none — mimo add <name>)"
+    [ "$found" = 1 ] || echo "  (none — mimo forge <name>)"
   else
-    echo "  (none — mimo add <name>)"
+    echo "  (none — mimo forge <name>)"
   fi
   if [ -f luke.json ] && have python3; then
     echo
@@ -435,11 +435,11 @@ EOF
   info "  luke.json"
   info "  main.lk"
   info "  luke_modules/"
-  info "next: mimo add greeter   or   mimo run"
+  info "next: mimo forge greeter   or   mimo run"
 }
 
 pkg_add() {
-  local spec="${1:?usage: mimo add <package>[@version]}"
+  local spec="${1:?usage: mimo forge <package>[@version]}"
   read -r name want_ver <<<"$(parse_spec "$spec")"
   case "$name" in
     postgresql) name=postgres ;;
@@ -463,7 +463,7 @@ pkg_add() {
       return 0
       ;;
     planned)
-      die "'${name}' is planned but not published yet — see packages.lukelang.org"
+      die "'${name}' is planned but not published yet — see lukelang.org/packages"
       ;;
   esac
 
@@ -484,7 +484,7 @@ pkg_add() {
 
   ensure_dirs
   archive="${MIMO_CACHE}/${name}-${version}.tar.gz"
-  info "add luke/${name}@${version}"
+  info "forge luke/${name}@${version}"
   if ! download "$url" "$archive" 2>/dev/null; then
     local fb
     fb="$(printf '%s' "$entry" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("url_fallback") or d.get("url") or "")')"
@@ -619,7 +619,7 @@ Toolchain:
 
 Packages:
   mimo init [name]                 Create luke.json + main.lk
-  mimo add <package>[@version]     Install from the package registry
+  mimo forge <package>[@version]   Install from the package registry
   mimo remove <package>            Remove from luke_modules/
   mimo run [file]                  Build and run the project
   mimo list                        Toolchains + packages
@@ -660,8 +660,8 @@ main() {
     init)
       pkg_init "${1:-}"
       ;;
-    add|install)
-      [ $# -ge 1 ] || die "usage: mimo add <package>"
+    forge|add|install)
+      [ $# -ge 1 ] || die "usage: mimo forge <package>"
       pkg_add "$1"
       ;;
     remove|rm)

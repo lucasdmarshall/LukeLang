@@ -129,8 +129,8 @@ irm https://lukelang.org/mimo.ps1 | iex
 ```bash
 mimo inject lukelang          # compiler
 mimo init                     # luke.json + main.lk
-mimo add greeter              # package from the registry
-mimo add http                 # builtin → import std/http
+mimo forge greeter            # package from the registry
+mimo forge http               # builtin → import std/http
 mimo run
 ```
 

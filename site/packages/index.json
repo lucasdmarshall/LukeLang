@@ -1,7 +1,7 @@
 {
   "name": "lukelang-packages",
   "version": "0.3.0",
-  "description": "Official LukeLang package index \u2014 mimo add <name>",
+  "description": "Official LukeLang package index \u2014 mimo forge <name>",
   "home": "https://lukelang.org/packages",
   "updated": "2026-08-31",
   "packages": {
@@ -102,7 +102,7 @@
       "url": "https://lukelang.org/packages/echo/0.1.0/echo.tar.gz",
       "url_fallback": "https://packages.lukelang.org/echo/0.1.0/echo.tar.gz",
       "sha256": "892f6b8cc4dea82a32b7f6f67f3f171230b798a167adf82a083334afabe97061",
-      "archive_sha256": "b1e01a61801feb7c0130a10311129c72a87dfd0762ac0954272cb3e9bbc58a24",
+      "archive_sha256": "8ced2e514407e3174786734bbc2f9811c54ecfe3a4fc275ca74ffec2dc8983de",
       "tarball": "echo/0.1.0/echo.tar.gz"
     },
     "greeter": {
@@ -112,7 +112,7 @@
       "url": "https://lukelang.org/packages/greeter/0.1.0/greeter.tar.gz",
       "url_fallback": "https://packages.lukelang.org/greeter/0.1.0/greeter.tar.gz",
       "sha256": "0d4ba543d9fa2028bcbf9c00258d110b58ec527f6b908bd5d71340f978ce3755",
-      "archive_sha256": "00bbb1d1ea24cfdc8adbbd3bfb2b8f669890164ea907687aa9b5ec7b4313ec43",
+      "archive_sha256": "787f5a567bc2a84f94fb2a4be89a16a1c900aaba9163fb6b36bb311cd26a8267",
       "tarball": "greeter/0.1.0/greeter.tar.gz"
     }
   }

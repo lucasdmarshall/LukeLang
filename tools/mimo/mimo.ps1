@@ -7,7 +7,7 @@
   irm https://lukelang.org/mimo.ps1 | iex
   mimo inject lukelang
   mimo init
-  mimo add greeter
+  mimo forge greeter
 #>
 
 $ErrorActionPreference = "Stop"
@@ -161,9 +161,9 @@ function Show-List {
       $found = $true
       Write-Host "  luke/$($_.Name)"
     }
-    if (-not $found) { Write-Host "  (none — mimo add <name>)" }
+    if (-not $found) { Write-Host "  (none — mimo forge <name>)" }
   } else {
-    Write-Host "  (none — mimo add <name>)"
+    Write-Host "  (none — mimo forge <name>)"
   }
 }
 
@@ -216,7 +216,7 @@ function Initialize-Project([string]$Name = "") {
     'print("Hello from LukeLang")' | Set-Content -Encoding UTF8 "main.lk"
   }
   Write-Mimo "initialized project '$Name'"
-  Write-Mimo "next: mimo add greeter   or   mimo run"
+  Write-Mimo "next: mimo forge greeter   or   mimo run"
 }
 
 function Write-LukeLock {
@@ -283,7 +283,7 @@ function Add-Package([string]$Spec) {
   $url = if ($entry.tarball) { "$regBase/$($entry.tarball)" } else { "$regBase/$name/$version/$name.tar.gz" }
   Ensure-Dirs
   $archive = Join-Path $MimoCache "$name-$version.tar.gz"
-  Write-Mimo "add luke/${name}@${version}"
+  Write-Mimo "forge luke/${name}@${version}"
   try {
     Download-File $url $archive
   } catch {
@@ -374,7 +374,7 @@ Toolchain:
 
 Packages:
   mimo init [name]
-  mimo add <package>[@version]
+  mimo forge <package>[@version]
   mimo remove <package>
   mimo run [file]
   mimo list
@@ -407,8 +407,16 @@ switch ($cmd) {
   "eject"         { Eject-LukeLang }
   "uninstall"     { Eject-LukeLang }
   "init"          { Initialize-Project $(if ($rest.Count) { $rest[0] } else { "" }) }
+  "forge"         {
+    if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
+    Add-Package $rest[0]
+  }
   "add"           {
-    if (-not $rest.Count) { throw "usage: mimo add <package>[@version]" }
+    if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
+    Add-Package $rest[0]
+  }
+  "install"       {
+    if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
     Add-Package $rest[0]
   }
   "remove"        {
