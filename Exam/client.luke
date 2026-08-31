@@ -1,4 +1,4 @@
-// Exam client — Material Design concepts + Tailwind skin, Live Graph WATCH.
+// Exam client — live ops console. Live Graph WATCH, Path A DOM+CSS.
 // Build:
 //   luke PUBLISH WEB Exam/client.luke -o Exam/dist/client --tailwind Exam/exam.tailwind.css
 // Served by Exam/server.luke at http://127.0.0.1:8820/
@@ -9,36 +9,240 @@ IMPORT std/argus
 
 NAME THE PAGE "Exam — LukeLang"
 
+BRING FONT FROM "https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+
 WEAR STYLE """
-html, body { margin: 0; min-height: 100vh; }
+:root {
+  --bg: #07090c;
+  --ink: #eef4f2;
+  --muted: #8b9aa3;
+  --dim: #5c6b73;
+  --line: rgba(255,255,255,0.08);
+  --card: rgba(255,255,255,0.035);
+  --card-hi: rgba(255,255,255,0.055);
+  --live: #2ee9c3;
+  --live-dim: rgba(46,233,195,0.14);
+  --flare: #f4a259;
+  --bad: #ff6b7a;
+  --bad-dim: rgba(255,107,122,0.12);
+  --ok: #7dffd2;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
 #root {
+  overflow: hidden !important;
+  width: 100% !important;
+  height: 100% !important;
   min-height: 100vh;
   background:
-    radial-gradient(900px 480px at 12% -10%, rgba(0, 150, 136, 0.22) 0%, transparent 55%),
-    radial-gradient(700px 420px at 100% 0%, rgba(25, 118, 210, 0.14) 0%, transparent 50%),
-    linear-gradient(165deg, #e8eef2 0%, #f4f6f8 42%, #e3e9ee 100%);
-  color: #1a2330;
-  font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+    radial-gradient(1200px 640px at 8% -10%, rgba(46,233,195,0.10) 0%, transparent 52%),
+    radial-gradient(900px 520px at 100% 0%, rgba(244,162,89,0.07) 0%, transparent 48%),
+    linear-gradient(180deg, #0b0e12 0%, #07090c 40%, #050608 100%);
+  background-image:
+    radial-gradient(1200px 640px at 8% -10%, rgba(46,233,195,0.10) 0%, transparent 52%),
+    radial-gradient(900px 520px at 100% 0%, rgba(244,162,89,0.07) 0%, transparent 48%),
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(180deg, #0b0e12 0%, #07090c 40%, #050608 100%);
+  background-size: auto, auto, 48px 48px, 48px 48px, auto;
+}
+html, body, #root { width: 100%; height: 100%; }
+/* Hanka COLUMN defaults to align-items:start, so rows shrink to content
+   and leave a dead strip on the right. Stretch the page shell instead. */
+#root > div,
+.shell {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  align-items: stretch !important;
+}
+#root > div > div,
+.row, .feeds {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+.row { flex: 0 0 auto !important; }
+.feeds {
+  flex: 1 1 auto !important;
+  min-height: 220px !important;
+  height: auto !important;
+  align-items: stretch !important;
+}
+.kpi, .panel, .feed-ok, .feed-err {
+  background: linear-gradient(180deg, var(--card-hi) 0%, var(--card) 100%);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px -28px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.04);
+  position: relative;
+  overflow: hidden;
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+.feed-ok, .feed-err {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+.kpi::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--live) 50%, transparent 100%);
+  background-size: 46% 100%;
+  animation: scan 2.8s ease-in-out infinite;
+  opacity: 0.85;
+}
+.feed-ok { box-shadow: 0 18px 50px -28px rgba(0,0,0,0.85), inset 3px 0 0 var(--live); }
+.feed-err { box-shadow: 0 18px 50px -28px rgba(0,0,0,0.85), inset 3px 0 0 var(--bad); }
+#mark {
+  font-family: "Syne", "Segoe UI", sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #07110f;
+  background: var(--live);
+  border-radius: 10px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
 }
 #brand {
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  font-size: clamp(42px, 7vw, 64px);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: #0d1b2a;
-  line-height: 1.05;
+  font-family: "Syne", "Segoe UI", sans-serif;
+  font-size: clamp(28px, 4vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  color: #f4fff8;
+  line-height: 1;
 }
-#tag { font-size: 15px; color: #455a64; max-width: 36rem; line-height: 1.45; }
+#live {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--ok);
+  background: var(--live-dim);
+  border: 1px solid rgba(46,233,195,0.35) !important;
+  border-radius: 999px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+#live::before {
+  content: "";
+  display: inline-block;
+  width: 7px; height: 7px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--live);
+  box-shadow: 0 0 0 0 rgba(46,233,195,0.65);
+  animation: pulse 1.7s ease-out infinite;
+}
+#tag { font-size: 13px; color: var(--muted); letter-spacing: 0.01em; }
+#port {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+}
 #lbl_rps, #lbl_total, #lbl_lat, #lbl_status, #lbl_top, #lbl_ok, #lbl_err {
-  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #607d8b; font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+#u_rps, #u_total, #u_lat {
+  font-size: 12px;
+  color: var(--muted);
 }
 #v_rps, #v_total {
-  font-size: clamp(36px, 5vw, 48px); font-weight: 700; letter-spacing: -0.02em; color: #00695c;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: clamp(36px, 4.6vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--live);
+  line-height: 1.05;
 }
-#v_lat, #v_status, #v_top { font-size: 18px; font-weight: 500; color: #1a2330; }
+#v_lat {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1.2;
+}
+#v_status, #v_top {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.35;
+}
 #v_ok, #v_err {
-  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-  font-size: 13px; white-space: pre-wrap; color: #37474f; line-height: 1.5; max-height: 9rem; overflow: auto;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.65;
+  overflow: auto;
+  color: #c9d6d2;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+#v_err { color: #ffc2c8; }
+#foot {
+  width: 100% !important;
+  font-size: 12px;
+  color: var(--dim);
+  letter-spacing: 0.02em;
+}
+#hit_ok, #hit_ping, #hit_slow, #hit_err {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line) !important;
+  border-radius: 9px;
+  cursor: pointer;
+}
+#hit_ok:hover, #hit_ping:hover, #hit_slow:hover, #hit_err:hover {
+  background: rgba(46,233,195,0.12);
+  border-color: rgba(46,233,195,0.35) !important;
+  color: var(--ok);
+}
+#hit_err:hover {
+  background: var(--bad-dim);
+  border-color: rgba(255,107,122,0.4) !important;
+  color: var(--bad);
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(46,233,195,0.65); }
+  70% { box-shadow: 0 0 0 10px rgba(46,233,195,0); }
+  100% { box-shadow: 0 0 0 0 rgba(46,233,195,0); }
+}
+@keyframes scan {
+  0% { background-position: -50% 0; }
+  100% { background-position: 150% 0; }
 }
 """
 
@@ -50,46 +254,64 @@ REMEMBER top AS "—"
 REMEMBER oks AS ""
 REMEMBER errs AS ""
 REMEMBER events AS 0
+REMEMBER probe AS ""
+REMEMBER probe_st AS 0
+REMEMBER probe_ready AS 0
 
-BEGIN COLUMN AT 40, 36 SIZE 920, 640 PAD 0 GAP 20
-  SLOT TEXT "brand" SIZE AUTO, 72 SAY "Exam"
-  SLOT TEXT "tag" SIZE AUTO, 44 SAY "LukeLang watching itself — every hit is a write; IVM pushes the dashboard."
+BEGIN COLUMN AT 0, 0 SIZE 1280, 800 PAD 24 GAP 16 WEAR "shell"
+  BEGIN ROW AT 0, 0 SIZE AUTO, 48 PAD 0 GAP 12 ALIGN CENTER WEAR "row"
+    SLOT TEXT "mark" SIZE 40, 40 SAY "LL"
+    SLOT TEXT "brand" SIZE AUTO, 40 SAY "Exam"
+    SLOT TEXT "live" SIZE 92, 28 SAY "LIVE"
+    SLOT TEXT "tag" SIZE AUTO, 28 SAY "LukeLang watching itself — every hit is a write."
+    SLOT TEXT "port" SIZE AUTO, 28 SAY ":8820  IVM · SSE"
+    SLOT BUTTON "hit_ok" SIZE 86, 32 SAY "HIT /ok"
+    SLOT BUTTON "hit_ping" SIZE 102, 32 SAY "HIT /ping"
+    SLOT BUTTON "hit_slow" SIZE 102, 32 SAY "HIT /slow"
+    SLOT BUTTON "hit_err" SIZE 94, 32 SAY "HIT /err"
+  END ROW
 
-  BEGIN ROW AT 0, 0 SIZE AUTO, 120 PAD 0 GAP 16 STACK BELOW 720
-    BEGIN COLUMN AT 0, 0 SIZE 200, 112 PAD 16 GAP 6 WEAR "rounded-2xl bg-white/90 shadow-md shadow-slate-900/10 ring-1 ring-black/5"
-      SLOT TEXT "lbl_rps" SIZE AUTO, 18 SAY "Req / s"
-      SLOT TEXT "v_rps" SIZE AUTO, 56 SAY "0"
+  BEGIN ROW AT 0, 0 SIZE AUTO, 148 PAD 0 GAP 16 STACK BELOW 900 WEAR "row"
+    BEGIN COLUMN AT 0, 0 SIZE AUTO, 148 PAD 18 GAP 8 WEAR "kpi"
+      SLOT TEXT "lbl_rps" SIZE AUTO, 16 SAY "Throughput"
+      SLOT TEXT "v_rps" SIZE AUTO, 56 SAY "0" ANNOUNCE
+      SLOT TEXT "u_rps" SIZE AUTO, 18 SAY "requests / second"
     END COLUMN
-    BEGIN COLUMN AT 0, 0 SIZE 200, 112 PAD 16 GAP 6 WEAR "rounded-2xl bg-white/90 shadow-md shadow-slate-900/10 ring-1 ring-black/5"
-      SLOT TEXT "lbl_total" SIZE AUTO, 18 SAY "Total"
-      SLOT TEXT "v_total" SIZE AUTO, 56 SAY "0"
+    BEGIN COLUMN AT 0, 0 SIZE AUTO, 148 PAD 18 GAP 8 WEAR "kpi"
+      SLOT TEXT "lbl_total" SIZE AUTO, 16 SAY "Volume"
+      SLOT TEXT "v_total" SIZE AUTO, 56 SAY "0" ANNOUNCE
+      SLOT TEXT "u_total" SIZE AUTO, 18 SAY "requests logged"
     END COLUMN
-    BEGIN COLUMN AT 0, 0 SIZE 280, 112 PAD 16 GAP 6 WEAR "rounded-2xl bg-white/90 shadow-md shadow-slate-900/10 ring-1 ring-black/5"
-      SLOT TEXT "lbl_lat" SIZE AUTO, 18 SAY "Latency"
-      SLOT TEXT "v_lat" SIZE AUTO, 56 SAY "—"
+    BEGIN COLUMN AT 0, 0 SIZE AUTO, 148 PAD 18 GAP 8 WEAR "kpi"
+      SLOT TEXT "lbl_lat" SIZE AUTO, 16 SAY "Latency"
+      SLOT TEXT "v_lat" SIZE AUTO, 56 SAY "—" ANNOUNCE
+      SLOT TEXT "u_lat" SIZE AUTO, 18 SAY "p50 · p99 from SQLite"
     END COLUMN
   END ROW
 
-  BEGIN COLUMN AT 0, 0 SIZE AUTO, 88 PAD 16 GAP 6 WEAR "rounded-2xl bg-white/90 shadow-md shadow-slate-900/10 ring-1 ring-black/5"
-    SLOT TEXT "lbl_status" SIZE AUTO, 18 SAY "Status codes"
-    SLOT TEXT "v_status" SIZE AUTO, 40 SAY "—"
-  END COLUMN
-
-  BEGIN COLUMN AT 0, 0 SIZE AUTO, 88 PAD 16 GAP 6 WEAR "rounded-2xl bg-white/90 shadow-md shadow-slate-900/10 ring-1 ring-black/5"
-    SLOT TEXT "lbl_top" SIZE AUTO, 18 SAY "Top paths"
-    SLOT TEXT "v_top" SIZE AUTO, 40 SAY "—"
-  END COLUMN
-
-  BEGIN ROW AT 0, 0 SIZE AUTO, 180 PAD 0 GAP 16 STACK BELOW 720
-    BEGIN COLUMN AT 0, 0 SIZE 420, 168 PAD 16 GAP 6 WEAR "rounded-2xl bg-teal-50/90 shadow-md shadow-slate-900/10 ring-1 ring-teal-900/10"
-      SLOT TEXT "lbl_ok" SIZE AUTO, 18 SAY "Live 2xx paths"
-      SLOT TEXT "v_ok" SIZE AUTO, 120 SAY "waiting…"
+  BEGIN ROW AT 0, 0 SIZE AUTO, 108 PAD 0 GAP 16 STACK BELOW 900 WEAR "row"
+    BEGIN COLUMN AT 0, 0 SIZE AUTO, 108 PAD 16 GAP 8 WEAR "panel"
+      SLOT TEXT "lbl_status" SIZE AUTO, 16 SAY "Status mix"
+      SLOT TEXT "v_status" SIZE AUTO, 48 SAY "—" ANNOUNCE
     END COLUMN
-    BEGIN COLUMN AT 0, 0 SIZE 420, 168 PAD 16 GAP 6 WEAR "rounded-2xl bg-rose-50/90 shadow-md shadow-slate-900/10 ring-1 ring-rose-900/10"
-      SLOT TEXT "lbl_err" SIZE AUTO, 18 SAY "Live 4xx / 5xx paths"
-      SLOT TEXT "v_err" SIZE AUTO, 120 SAY "waiting…"
+    BEGIN COLUMN AT 0, 0 SIZE AUTO, 108 PAD 16 GAP 8 WEAR "panel"
+      SLOT TEXT "lbl_top" SIZE AUTO, 16 SAY "Hot paths"
+      SLOT TEXT "v_top" SIZE AUTO, 48 SAY "—" ANNOUNCE
     END COLUMN
   END ROW
+
+  BEGIN ROW AT 0, 0 SIZE AUTO, AUTO PAD 0 GAP 16 STACK BELOW 900 WEAR "feeds"
+    BEGIN COLUMN AT 0, 0 SIZE AUTO, AUTO PAD 16 GAP 8 SCROLL WEAR "feed-ok"
+      SLOT TEXT "lbl_ok" SIZE AUTO, 16 SAY "Live 2xx"
+      SLOT TEXT "v_ok" SIZE AUTO, AUTO SAY "waiting for traffic…" ANNOUNCE
+    END COLUMN
+    BEGIN COLUMN AT 0, 0 SIZE AUTO, AUTO PAD 16 GAP 8 SCROLL WEAR "feed-err"
+      SLOT TEXT "lbl_err" SIZE AUTO, 16 SAY "Live 4xx / 5xx"
+      SLOT TEXT "v_err" SIZE AUTO, AUTO SAY "waiting for traffic…" ANNOUNCE
+    END COLUMN
+  END ROW
+
+  SLOT TEXT "foot" SIZE AUTO, 24 SAY "Live Graph  ·  never fetch  ·  never invalidate  ·  never subscribe  ·  never diff  —  change finds its own way from row to pixel"
 END COLUMN
 
 LAY OUT THE SCREEN
@@ -121,6 +343,22 @@ END WHEN
 
 WHEN WATCH errs IS READY DO
   SPEAK "errs=" AND errs
+END WHEN
+
+WHEN "hit_ok" IS CLICKED DO
+  START FETCH "hit_ok" GET "http://127.0.0.1:8820/ok" INTO probe STATUS probe_st READY probe_ready
+END WHEN
+
+WHEN "hit_ping" IS CLICKED DO
+  START FETCH "hit_ping" GET "http://127.0.0.1:8820/api/ping" INTO probe STATUS probe_st READY probe_ready
+END WHEN
+
+WHEN "hit_slow" IS CLICKED DO
+  START FETCH "hit_slow" GET "http://127.0.0.1:8820/slow" INTO probe STATUS probe_st READY probe_ready
+END WHEN
+
+WHEN "hit_err" IS CLICKED DO
+  START FETCH "hit_err" GET "http://127.0.0.1:8820/err" INTO probe STATUS probe_st READY probe_ready
 END WHEN
 
 SPEAK "exam_client_ready=1"
