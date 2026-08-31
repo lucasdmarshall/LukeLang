@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Download — LukeLang</title>
-<meta name="description" content="Inject LukeLang with mimo — one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit." />
+<meta name="description" content="Download LukeLang 0.3.0 binaries for Linux, macOS and Windows — or install with mimo in one step." />
 <meta name="theme-color" content="#050806" />
 <link rel="icon" href="../assets/favicon.png" type="image/png" />
 <!-- seo:begin -->
@@ -17,16 +17,16 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://lukelang.org/download/" />
 <meta property="og:title" content="Download — LukeLang" />
-<meta property="og:description" content="Inject LukeLang with mimo — one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit." />
+<meta property="og:description" content="Download LukeLang 0.3.0 binaries for Linux, macOS and Windows — or install with mimo in one step." />
 <meta property="og:image" content="https://lukelang.org/assets/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="LukeLang — Myanmar's first official programming language" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Download — LukeLang" />
-<meta name="twitter:description" content="Inject LukeLang with mimo — one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit." />
+<meta name="twitter:description" content="Download LukeLang 0.3.0 binaries for Linux, macOS and Windows — or install with mimo in one step." />
 <meta name="twitter:image" content="https://lukelang.org/assets/og.png" />
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"WebPage","name":"Download","description":"Inject LukeLang with mimo \u2014 one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit.","url":"https://lukelang.org/download/","isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"WebPage","name":"Download","description":"Download LukeLang 0.3.0 binaries for Linux, macOS and Windows \u2014 or install with mimo in one step.","url":"https://lukelang.org/download/","isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"}]}</script>
 <!-- seo:end -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -61,10 +61,10 @@
 <main>
   <section class="masthead">
     <p class="masthead__kicker">Download</p>
-    <h1>mimo <em>inject</em> lukelang</h1>
+    <h1>Get <em>LukeLang</em></h1>
     <p>
-      One command installs the LukeLang compiler. Linux, macOS and Windows —
-      Intel, Apple Silicon, ARM, 32-bit and 64-bit.
+      Download the compiler binary for your machine, or let mimo install it in one step.
+      Version 0.3.0 — Linux, macOS and Windows.
     </p>
   </section>
 
@@ -75,8 +75,8 @@
       <div class="sidebar__panel">
       <h2>On this page</h2>
       <ul>
-        <li><a href="#mimo">mimo inject</a></li>
-        <li><a href="#targets">Targets</a></li>
+        <li><a href="#binaries">Binary downloads</a></li>
+        <li><a href="#mimo">Installer (mimo)</a></li>
         <li><a href="#verify">Verify</a></li>
         <li><a href="#editors">Editor tooling</a></li>
         <li><a href="#packages">Packages</a></li>
@@ -92,75 +92,83 @@
 
     <div class="prose">
 
-      <section id="mimo">
-        <h2>mimo <em>inject</em></h2>
+      <section id="binaries">
+        <h2>Binary <em>downloads</em></h2>
         <p>
-          <b>mimo</b> is the LukeLang installer. It detects your machine, downloads the matching
-          binary, and puts <code>luke</code> on your <code>PATH</code>.
+          Pick your platform. Each archive contains the <code>luke</code> compiler
+          (<code>luke.exe</code> on Windows). Unpack it and put the binary on your
+          <code>PATH</code>.
+        </p>
+        <h3>Linux</h3>
+        <ul class="rows">
+          <li>
+            <p class="rows__key">64-bit Intel / AMD</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-linux-x86_64.tar.gz">luke-linux-x86_64.tar.gz</a></p>
+          </li>
+          <li>
+            <p class="rows__key">32-bit Intel</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-linux-i686.tar.gz">luke-linux-i686.tar.gz</a></p>
+          </li>
+          <li>
+            <p class="rows__key">64-bit ARM</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-linux-aarch64.tar.gz">luke-linux-aarch64.tar.gz</a></p>
+          </li>
+          <li>
+            <p class="rows__key">32-bit ARM</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-linux-armv7.tar.gz">luke-linux-armv7.tar.gz</a></p>
+          </li>
+        </ul>
+        <h3>macOS</h3>
+        <ul class="rows">
+          <li>
+            <p class="rows__key">Apple Silicon</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-darwin-arm64.tar.gz">luke-darwin-arm64.tar.gz</a></p>
+          </li>
+          <li>
+            <p class="rows__key">Intel Mac</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-darwin-x86_64.tar.gz">luke-darwin-x86_64.tar.gz</a></p>
+          </li>
+        </ul>
+        <h3>Windows</h3>
+        <ul class="rows">
+          <li>
+            <p class="rows__key">64-bit</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-windows-x86_64.zip">luke-windows-x86_64.zip</a></p>
+          </li>
+          <li>
+            <p class="rows__key">32-bit</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-windows-i686.zip">luke-windows-i686.zip</a></p>
+          </li>
+          <li>
+            <p class="rows__key">ARM64</p>
+            <p class="rows__val"><a href="/dist/mimo/lukelang/0.3.0/luke-windows-arm64.zip">luke-windows-arm64.zip</a></p>
+          </li>
+        </ul>
+        <p class="note">
+          Checksums sit next to each file as <code>.sha256</code>. The machine-readable index is
+          <a href="/dist/mimo/channel/stable.json">stable.json</a>.
+        </p>
+      </section>
+
+      <section id="mimo">
+        <h2>Installer <em>(mimo)</em></h2>
+        <p>
+          Optional. <b>mimo</b> is a small installer script — the same idea as
+          <code>rustup</code> or <code>get-pip</code>. It detects your OS/arch, downloads the
+          matching binary above, and places <code>luke</code> in <code>~/.mimo/bin</code>.
+          You do not have to use it if you prefer a manual download.
         </p>
         <h3>Linux / macOS / WSL</h3>
 <pre><code><span class="ln"><b class="sh">curl</b> -fsSL https://lukelang.org/mimo | bash</span></code></pre>
         <h3>Windows (PowerShell)</h3>
 <pre><code><span class="ln">irm https://lukelang.org/mimo.ps1 | iex</span></code></pre>
-        <p>Already have mimo?</p>
+        <p>Already have mimo installed?</p>
 <pre><code><span class="ln"><b class="sh">mimo</b> inject lukelang</span>
 <span class="ln"><b class="sh">mimo</b> inject lukelang@0.3.0</span>
 <span class="ln"><b class="sh">mimo</b> update lukelang</span>
 <span class="ln"><b class="sh">mimo</b> list</span>
 <span class="ln"><b class="sh">mimo</b> doctor</span>
 <span class="ln"><b class="sh">mimo</b> eject lukelang</span></code></pre>
-        <p class="note">
-          Installs into <code>~/.mimo</code>. Add <code>~/.mimo/bin</code> to your
-          <code>PATH</code> if the installer says so.
-        </p>
-      </section>
-
-      <section id="targets">
-        <h2>Targets</h2>
-        <ul class="rows">
-          <li>
-            <p class="rows__key">linux-x86_64</p>
-            <p class="rows__val">Linux 64-bit Intel / AMD</p>
-          </li>
-          <li>
-            <p class="rows__key">linux-i686</p>
-            <p class="rows__val">Linux 32-bit Intel</p>
-          </li>
-          <li>
-            <p class="rows__key">linux-aarch64</p>
-            <p class="rows__val">Linux 64-bit ARM</p>
-          </li>
-          <li>
-            <p class="rows__key">linux-armv7</p>
-            <p class="rows__val">Linux 32-bit ARM</p>
-          </li>
-          <li>
-            <p class="rows__key">darwin-arm64</p>
-            <p class="rows__val">Apple Silicon</p>
-          </li>
-          <li>
-            <p class="rows__key">darwin-x86_64</p>
-            <p class="rows__val">Intel Mac</p>
-          </li>
-          <li>
-            <p class="rows__key">windows-x86_64</p>
-            <p class="rows__val">Windows 64-bit</p>
-          </li>
-          <li>
-            <p class="rows__key">windows-i686</p>
-            <p class="rows__val">Windows 32-bit</p>
-          </li>
-          <li>
-            <p class="rows__key">windows-arm64</p>
-            <p class="rows__val">Windows on ARM</p>
-          </li>
-        </ul>
-        <p>
-          Channel manifest:
-          <a href="/dist/mimo/channel/stable.json"><code>/dist/mimo/channel/stable.json</code></a>.
-          Direct archives live under
-          <a href="/dist/mimo/"><code>/dist/mimo/lukelang/&lt;version&gt;/</code></a>.
-        </p>
       </section>
 
       <section id="verify">
