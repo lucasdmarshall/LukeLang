@@ -7,13 +7,13 @@
       "version": "0.1.0",
       "description": "Published luke/greeter",
       "path": "registry/packages/greeter",
-      "sha256": "c361843090b84250cf764060e6f153c71307f64b5dc822116f5b860a66e4c001"
+      "sha256": "0d4ba543d9fa2028bcbf9c00258d110b58ec527f6b908bd5d71340f978ce3755"
     },
     "echo": {
       "version": "0.1.0",
       "description": "Tiny echo helpers",
       "path": "registry/packages/echo",
-      "sha256": "313a43dda935775f16a45afd7f75a6257ae866a2f2efff326722a653517a6c24"
+      "sha256": "892f6b8cc4dea82a32b7f6f67f3f171230b798a167adf82a083334afabe97061"
     }
   }
 }
