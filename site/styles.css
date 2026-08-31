@@ -351,13 +351,16 @@ em { font-style: normal; }
 .btn {
   position: relative;
   overflow: hidden;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.85rem 1.9rem;
   border-radius: 999px;
   background: var(--green);
   color: #04150d;
   font-weight: 700;
   font-size: var(--step--1);
+  line-height: 1;
   letter-spacing: 0.01em;
   transition: transform 400ms var(--ease), box-shadow 400ms var(--ease);
 }

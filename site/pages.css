@@ -201,7 +201,7 @@
 }
 .prose p { margin: 0; color: var(--mute); font-weight: 300; max-width: 68ch; }
 .prose p strong, .prose li strong { color: var(--white); font-weight: 600; }
-.prose a:not(.sidebar a) {
+.prose a:not(.sidebar a):not(.btn) {
   color: var(--white);
   background-image: linear-gradient(var(--green), var(--green));
   background-size: 100% 1px;
@@ -210,7 +210,11 @@
   padding-bottom: 1px;
   transition: background-size 380ms var(--ease), color 300ms var(--ease);
 }
-.prose a:not(.sidebar a):hover { background-size: 0% 1px; background-position: 100% 100%; color: var(--yellow); }
+.prose a:not(.sidebar a):not(.btn):hover {
+  background-size: 0% 1px;
+  background-position: 100% 100%;
+  color: var(--yellow);
+}
 
 .prose ul, .prose ol { margin: 0; padding-left: 1.2rem; color: var(--mute); font-weight: 300; }
 .prose li { margin-bottom: 0.5rem; max-width: 66ch; }
@@ -293,11 +297,17 @@
   max-width: none;
 }
 .btn--dl {
-  padding: 0.55rem 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.4rem 0.62rem;
   font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-decoration: none;
+  color: #04150d;
   border-radius: 0.35rem;
 }
 .btn--dl::before { animation-duration: 4.5s; }
