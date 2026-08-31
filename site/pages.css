@@ -281,6 +281,43 @@
   .rows > li { grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
 }
 
+/* Download buttons on the binaries list */
+.rows--dl > li {
+  align-items: center;
+}
+.rows--dl .rows__val {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1.1rem;
+  max-width: none;
+}
+.btn--dl {
+  padding: 0.55rem 1.35rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 0.35rem;
+}
+.btn--dl::before { animation-duration: 4.5s; }
+.dl-meta {
+  color: var(--mute);
+  font-size: 0.78rem;
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 300ms var(--ease), border-color 300ms var(--ease);
+}
+.dl-meta:hover {
+  color: var(--yellow);
+  border-bottom-color: var(--yellow);
+}
+@media (max-width: 700px) {
+  .rows--dl > li { align-items: start; }
+}
+
 /* ── Syntax cheatsheet table ────────────────────────────────────── */
 
 .sheet { width: 100%; border-collapse: collapse; margin: 1.6rem 0; font-size: var(--step--1); }
