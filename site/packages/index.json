@@ -1,0 +1,119 @@
+{
+  "name": "lukelang-packages",
+  "version": "0.3.0",
+  "description": "Official LukeLang package index \u2014 mimo add <name>",
+  "home": "https://lukelang.org/packages",
+  "updated": "2026-08-31",
+  "packages": {
+    "http": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "HTTP client helpers \u2014 ships with LukeLang",
+      "import": "std/http"
+    },
+    "json": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "JSON encode/decode \u2014 ships with LukeLang",
+      "import": "std/json"
+    },
+    "server": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "HTTP server \u2014 ships with LukeLang",
+      "import": "std/server"
+    },
+    "postgres": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "Postgres via libpq \u2014 ships with LukeLang",
+      "import": "std/pg"
+    },
+    "pg": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "Postgres via libpq \u2014 ships with LukeLang",
+      "import": "std/pg"
+    },
+    "sqlite": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "SQLite \u2014 ships with LukeLang",
+      "import": "std/sqlite"
+    },
+    "env": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "Process environment \u2014 ships with LukeLang",
+      "import": "std/env"
+    },
+    "auth": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "Argon2id passwords + sessions \u2014 ships with LukeLang",
+      "import": "std/auth"
+    },
+    "jwt": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "Auth surface (sessions/CSRF today; JWT helpers expanding)",
+      "import": "std/auth"
+    },
+    "crypto": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "Crypto primitives via std/auth (Argon2id) \u2014 ships with LukeLang",
+      "import": "std/auth"
+    },
+    "args": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "CLI args \u2014 ships with LukeLang",
+      "import": "std/args"
+    },
+    "files": {
+      "version": "0.3.0",
+      "kind": "builtin",
+      "description": "Filesystem helpers \u2014 ships with LukeLang",
+      "import": "std/files"
+    },
+    "logger": {
+      "version": "0.3.0",
+      "kind": "planned",
+      "description": "Planned first-party logger \u2014 not published yet",
+      "status": "planned"
+    },
+    "mysql": {
+      "version": "0.3.0",
+      "kind": "planned",
+      "description": "Planned MySQL driver \u2014 not published yet",
+      "status": "planned"
+    },
+    "redis": {
+      "version": "0.3.0",
+      "kind": "planned",
+      "description": "Planned Redis client \u2014 not published yet",
+      "status": "planned"
+    },
+    "echo": {
+      "version": "0.1.0",
+      "kind": "package",
+      "description": "Tiny echo helpers",
+      "url": "https://lukelang.org/packages/echo/0.1.0/echo.tar.gz",
+      "url_fallback": "https://packages.lukelang.org/echo/0.1.0/echo.tar.gz",
+      "sha256": "892f6b8cc4dea82a32b7f6f67f3f171230b798a167adf82a083334afabe97061",
+      "archive_sha256": "b1e01a61801feb7c0130a10311129c72a87dfd0762ac0954272cb3e9bbc58a24",
+      "tarball": "echo/0.1.0/echo.tar.gz"
+    },
+    "greeter": {
+      "version": "0.1.0",
+      "kind": "package",
+      "description": "Hello helper for luke/greeter",
+      "url": "https://lukelang.org/packages/greeter/0.1.0/greeter.tar.gz",
+      "url_fallback": "https://packages.lukelang.org/greeter/0.1.0/greeter.tar.gz",
+      "sha256": "0d4ba543d9fa2028bcbf9c00258d110b58ec527f6b908bd5d71340f978ce3755",
+      "archive_sha256": "00bbb1d1ea24cfdc8adbbd3bfb2b8f669890164ea907687aa9b5ec7b4313ec43",
+      "tarball": "greeter/0.1.0/greeter.tar.gz"
+    }
+  }
+}

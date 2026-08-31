@@ -127,12 +127,17 @@ irm https://lukelang.org/mimo.ps1 | iex
 ```
 
 ```bash
-mimo inject lukelang          # or lukelang@0.3.0
-luke BUILD hello.lk -o hello && ./hello
+mimo inject lukelang          # compiler
+mimo init                     # luke.json + main.lk
+mimo add greeter              # package from the registry
+mimo add http                 # builtin → import std/http
+mimo run
 ```
 
 Covers Linux, macOS and Windows — Intel, Apple Silicon, ARM, 32-bit and 64-bit.
-Details and the contributor source build are on
+Package index: [lukelang.org/packages](https://lukelang.org/packages/)
+(and [packages.lukelang.org](https://packages.lukelang.org) once DNS points at the VPS).
+Details and binary downloads are on
 [download](https://lukelang.org/download/).
 
 | Command | What you get |

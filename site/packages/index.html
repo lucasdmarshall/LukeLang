@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Packages — LukeLang</title>
+<meta name="description" content="Official LukeLang package registry for mimo add." />
+<link rel="icon" href="https://lukelang.org/assets/favicon.png" type="image/png" />
+<link rel="stylesheet" href="https://lukelang.org/styles.css" />
+<link rel="stylesheet" href="https://lukelang.org/pages.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<header class="nav">
+  <a class="nav__brand" href="https://lukelang.org/">
+    <img src="https://lukelang.org/assets/luke-mark-sm.png" alt="" width="128" height="65" />
+    <span>LukeLang</span>
+  </a>
+  <nav class="nav__links" aria-label="Primary">
+    <a href="https://lukelang.org/learn/">Learn</a>
+    <a href="https://lukelang.org/docs/">Docs</a>
+    <a href="https://lukelang.org/download/">Download</a>
+    <a href="./" aria-current="page">Packages</a>
+    <a href="https://github.com/lucasdmarshall/LukeLang">GitHub</a>
+  </nav>
+</header>
+<main>
+  <section class="masthead">
+    <p class="masthead__kicker">lukelang.org/packages</p>
+    <h1>mimo <em>add</em></h1>
+    <p>Official package index. Builtin modules ship with the compiler; packages install into <code>luke_modules/</code>.</p>
+  </section>
+  <div class="page">
+    <div class="prose" style="grid-column: 1 / -1; max-width: 52rem; margin: 0 auto;">
+      <section>
+        <h2>Install</h2>
+<pre><code><span class="ln"><b class="sh">mimo</b> add greeter</span>
+<span class="ln"><b class="sh">mimo</b> add http          <b class="cm"># builtin → import std/http</b></span></code></pre>
+        <p>Machine index: <a href="./index.json"><code>index.json</code></a></p>
+      </section>
+      <section>
+        <h2>Catalog</h2>
+        <ul class="rows rows--dl">
+          <li><p class="rows__key">args <i>builtin</i></p><p class="rows__val">CLI args — ships with LukeLang<br/><code>import std/args</code></p></li><li><p class="rows__key">auth <i>builtin</i></p><p class="rows__val">Argon2id passwords + sessions — ships with LukeLang<br/><code>import std/auth</code></p></li><li><p class="rows__key">crypto <i>builtin</i></p><p class="rows__val">Crypto primitives via std/auth (Argon2id) — ships with LukeLang<br/><code>import std/auth</code></p></li><li><p class="rows__key">echo <i>package</i></p><p class="rows__val">Tiny echo helpers<br/><a class="btn btn--dl" href="echo/0.1.0/echo.tar.gz">Download</a></p></li><li><p class="rows__key">env <i>builtin</i></p><p class="rows__val">Process environment — ships with LukeLang<br/><code>import std/env</code></p></li><li><p class="rows__key">files <i>builtin</i></p><p class="rows__val">Filesystem helpers — ships with LukeLang<br/><code>import std/files</code></p></li><li><p class="rows__key">greeter <i>package</i></p><p class="rows__val">Hello helper for luke/greeter<br/><a class="btn btn--dl" href="greeter/0.1.0/greeter.tar.gz">Download</a></p></li><li><p class="rows__key">http <i>builtin</i></p><p class="rows__val">HTTP client helpers — ships with LukeLang<br/><code>import std/http</code></p></li><li><p class="rows__key">json <i>builtin</i></p><p class="rows__val">JSON encode/decode — ships with LukeLang<br/><code>import std/json</code></p></li><li><p class="rows__key">jwt <i>builtin</i></p><p class="rows__val">Auth surface (sessions/CSRF today; JWT helpers expanding)<br/><code>import std/auth</code></p></li><li><p class="rows__key">logger <i>planned</i></p><p class="rows__val">Planned first-party logger — not published yet<br/><span>coming soon</span></p></li><li><p class="rows__key">mysql <i>planned</i></p><p class="rows__val">Planned MySQL driver — not published yet<br/><span>coming soon</span></p></li><li><p class="rows__key">pg <i>builtin</i></p><p class="rows__val">Postgres via libpq — ships with LukeLang<br/><code>import std/pg</code></p></li><li><p class="rows__key">postgres <i>builtin</i></p><p class="rows__val">Postgres via libpq — ships with LukeLang<br/><code>import std/pg</code></p></li><li><p class="rows__key">redis <i>planned</i></p><p class="rows__val">Planned Redis client — not published yet<br/><span>coming soon</span></p></li><li><p class="rows__key">server <i>builtin</i></p><p class="rows__val">HTTP server — ships with LukeLang<br/><code>import std/server</code></p></li><li><p class="rows__key">sqlite <i>builtin</i></p><p class="rows__val">SQLite — ships with LukeLang<br/><code>import std/sqlite</code></p></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</main>
+</body>
+</html>

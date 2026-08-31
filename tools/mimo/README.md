@@ -1,58 +1,41 @@
 # mimo
 
-**mimo** injects LukeLang onto your machine — one command, every supported OS/arch.
+**mimo** is the LukeLang toolchain installer **and** package manager.
 
 ```bash
-# Linux / macOS / WSL
+# Install compiler
 curl -fsSL https://lukelang.org/mimo | bash
-
-# then later
 mimo inject lukelang
-mimo inject lukelang@0.3.0
-mimo list
-mimo update lukelang
-mimo eject lukelang
-mimo doctor
+
+# Packages (npm/pip-style)
+mimo init
+mimo add greeter              # → luke_modules/greeter
+mimo add http                 # builtin → import std/http
+mimo run
 ```
 
 ```powershell
-# Windows PowerShell
 irm https://lukelang.org/mimo.ps1 | iex
 ```
 
-## Targets
+## Commands
 
-| Target | Machine |
+| Command | Role |
 |---|---|
-| `linux-x86_64` | Linux 64-bit Intel/AMD |
-| `linux-i686` | Linux 32-bit Intel |
-| `linux-aarch64` | Linux 64-bit ARM |
-| `linux-armv7` | Linux 32-bit ARM |
-| `darwin-arm64` | Apple Silicon |
-| `darwin-x86_64` | Intel Mac |
-| `windows-x86_64` | Windows 64-bit |
-| `windows-i686` | Windows 32-bit |
-| `windows-arm64` | Windows on ARM |
+| `mimo inject lukelang` | Install / activate the compiler |
+| `mimo init [name]` | Create `luke.json` + `main.lk` |
+| `mimo add <pkg>` | Install from [lukelang.org/packages](https://lukelang.org/packages/) |
+| `mimo remove <pkg>` | Remove from `luke_modules/` |
+| `mimo run [file]` | `luke BUILD` + execute |
+| `mimo list` | Toolchains + packages |
+| `mimo doctor` | Diagnose PATH / registry |
 
-## Layout on disk
-
-```
-~/.mimo/
-  bin/mimo
-  bin/luke          → active toolchain
-  toolchains/lukelang-<ver>/luke
-  cache/
-  current-lukelang
-```
+Builtin modules (`http`, `json`, `postgres`, …) ship with the compiler — `mimo add` prints the `import std/…` line. Registry packages install as `import luke/<name>`.
 
 ## Maintainers
 
 ```bash
-# build one target
-scripts/mimo_build_release.sh linux-x86_64
-
-# assemble site/dist/mimo + stable.json from dist/mimo-out/
-scripts/mimo_publish_dist.sh
+scripts/mimo_publish_packages.sh   # rebuild site/packages from registry/packages
+scripts/mimo_publish_dist.sh       # toolchain binaries
+deploy/enable_packages_vhost.sh    # nginx + TLS for packages.lukelang.org
 ```
-
-Artifacts are published under `https://lukelang.org/dist/mimo/` and on GitHub Releases via `.github/workflows/mimo-release.yml`.

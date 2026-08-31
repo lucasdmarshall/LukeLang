@@ -1,22 +1,32 @@
 #requires -Version 5.0
 <#
 .SYNOPSIS
-  mimo — inject LukeLang onto Windows.
+  mimo — LukeLang toolchain installer + package manager.
 
 .EXAMPLE
   irm https://lukelang.org/mimo.ps1 | iex
   mimo inject lukelang
+  mimo init
+  mimo add greeter
 #>
 
 $ErrorActionPreference = "Stop"
 $MimoVersion = "0.3.0"
 $MimoHome = if ($env:MIMO_HOME) { $env:MIMO_HOME } else { Join-Path $HOME ".mimo" }
 $MimoDist = if ($env:MIMO_DIST) { $env:MIMO_DIST } else { "https://lukelang.org/dist/mimo" }
+$MimoRegistry = if ($env:MIMO_REGISTRY) { $env:MIMO_REGISTRY } else { "https://lukelang.org/packages/index.json" }
 $MimoBin = Join-Path $MimoHome "bin"
 $MimoToolchains = Join-Path $MimoHome "toolchains"
 $MimoCache = Join-Path $MimoHome "cache"
 
 function Write-Mimo($msg) { Write-Host "mimo: $msg" }
+
+function Parse-Spec([string]$Spec) {
+  if ($Spec -match "^(?<n>[^@]+)@(?<v>.+)$") {
+    return @{ Name = $Matches.n; Version = $Matches.v }
+  }
+  return @{ Name = $Spec; Version = "latest" }
+}
 
 function Get-MimoTarget {
   $arch = $env:PROCESSOR_ARCHITECTURE
@@ -126,11 +136,15 @@ function Show-PathHint {
 function Show-List {
   Ensure-Dirs
   Write-Host "mimo home: $MimoHome"
+  Write-Host "registry:  $MimoRegistry"
   Write-Host "target:    $(Get-MimoTarget)"
   Write-Host ""
+  Write-Host "toolchains:"
+  $any = $false
   Get-ChildItem -Path $MimoToolchains -Directory -ErrorAction SilentlyContinue |
     Where-Object { $_.Name -like "lukelang-*" } |
     ForEach-Object {
+      $any = $true
       $ver = $_.Name -replace "^lukelang-", ""
       $cur = if (Test-Path (Join-Path $MimoHome "current-lukelang")) {
         (Get-Content (Join-Path $MimoHome "current-lukelang") -Raw).Trim()
@@ -138,6 +152,19 @@ function Show-List {
       if ($ver -eq $cur) { Write-Host "  lukelang $ver  (active)" }
       else { Write-Host "  lukelang $ver" }
     }
+  if (-not $any) { Write-Host "  (none — mimo inject lukelang)" }
+  Write-Host ""
+  Write-Host "packages (./luke_modules):"
+  if (Test-Path "luke_modules") {
+    $found = $false
+    Get-ChildItem -Path "luke_modules" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+      $found = $true
+      Write-Host "  luke/$($_.Name)"
+    }
+    if (-not $found) { Write-Host "  (none — mimo add <name>)" }
+  } else {
+    Write-Host "  (none — mimo add <name>)"
+  }
 }
 
 function Eject-LukeLang {
@@ -151,25 +178,206 @@ function Eject-LukeLang {
 
 function Show-Doctor {
   Write-Host "mimo $MimoVersion"
-  Write-Host "home   $MimoHome"
-  Write-Host "dist   $MimoDist"
-  Write-Host "target $(Get-MimoTarget)"
+  Write-Host "home     $MimoHome"
+  Write-Host "dist     $MimoDist"
+  Write-Host "registry $MimoRegistry"
+  Write-Host "target   $(Get-MimoTarget)"
   $luke = Join-Path $MimoBin "luke.exe"
-  if (Test-Path $luke) { Write-Host "luke   present ($luke)" } else { Write-Host "luke   not injected" }
+  if (Test-Path $luke) { Write-Host "luke     present ($luke)" } else { Write-Host "luke     not injected" }
+}
+
+function Get-RegistryIndex {
+  Ensure-Dirs
+  $dest = Join-Path $MimoCache "packages-index.json"
+  $urls = @($MimoRegistry, "https://packages.lukelang.org/index.json", "https://lukelang.org/packages/index.json") |
+    Select-Object -Unique
+  foreach ($url in $urls) {
+    try {
+      Download-File $url $dest
+      return (Get-Content -Raw $dest | ConvertFrom-Json)
+    } catch {
+      continue
+    }
+  }
+  throw "cannot fetch package registry"
+}
+
+function Initialize-Project([string]$Name = "") {
+  if (-not $Name) { $Name = Split-Path -Leaf (Get-Location) }
+  if (Test-Path "luke.json") { throw "luke.json already exists" }
+  New-Item -ItemType Directory -Force -Path "luke_modules" | Out-Null
+  @{
+    name = $Name
+    version = "0.1.0"
+    main = "main.lk"
+    dependencies = @{}
+  } | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "luke.json"
+  if (-not (Test-Path "main.lk") -and -not (Test-Path "main.luke")) {
+    'print("Hello from LukeLang")' | Set-Content -Encoding UTF8 "main.lk"
+  }
+  Write-Mimo "initialized project '$Name'"
+  Write-Mimo "next: mimo add greeter   or   mimo run"
+}
+
+function Write-LukeLock {
+  $lines = @("# luke.lock — written by mimo", "lock_version=1", "")
+  if (Test-Path "luke_modules") {
+    Get-ChildItem "luke_modules" -Directory | Sort-Object Name | ForEach-Object {
+      $blob = [byte[]]@()
+      foreach ($part in @("luke.pkg", "main.luke", "main.lk")) {
+        $f = Join-Path $_.FullName $part
+        if (Test-Path $f) {
+          $blob = $blob + [System.IO.File]::ReadAllBytes($f)
+        }
+      }
+      $ver = "0.0.0"
+      $pkg = Join-Path $_.FullName "luke.pkg"
+      if (Test-Path $pkg) {
+        Get-Content $pkg | ForEach-Object {
+          if ($_ -match "^version=(.+)$") { $ver = $Matches[1].Trim() }
+        }
+      }
+      $sha = if ($blob.Length) {
+        ([System.BitConverter]::ToString(
+          [System.Security.Cryptography.SHA256]::Create().ComputeHash($blob)
+        )).Replace("-", "").ToLowerInvariant()
+      } else { "" }
+      $lines += "package $($_.Name) version $ver sha256 $sha"
+    }
+  }
+  ($lines -join "`n") + "`n" | Set-Content -Encoding UTF8 "luke.lock"
+  Write-Mimo "wrote luke.lock"
+}
+
+function Record-Dependency([string]$Name, [string]$Version) {
+  if (-not (Test-Path "luke.json")) { Initialize-Project }
+  $data = Get-Content -Raw "luke.json" | ConvertFrom-Json
+  if (-not $data.dependencies) {
+    $data | Add-Member -NotePropertyName dependencies -NotePropertyValue ([pscustomobject]@{}) -Force
+  }
+  $data.dependencies | Add-Member -NotePropertyName $Name -NotePropertyValue $Version -Force
+  $data | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "luke.json"
+}
+
+function Add-Package([string]$Spec) {
+  $parsed = Parse-Spec $Spec
+  $name = $parsed.Name
+  if ($name -eq "postgresql") { $name = "postgres" }
+  $index = Get-RegistryIndex
+  $entry = $index.packages.$name
+  if (-not $entry) { throw "package '$name' not in registry — see $MimoRegistry" }
+
+  if ($entry.kind -eq "builtin") {
+    Write-Mimo "'$name' ships with LukeLang"
+    Write-Mimo "  add to your source:  import $($entry.import)"
+    $ver = if ($entry.version) { $entry.version } else { "0.3.0" }
+    Record-Dependency $name "builtin:$ver"
+    return
+  }
+  if ($entry.kind -eq "planned") {
+    throw "'$name' is planned but not published yet"
+  }
+
+  $version = if ($parsed.Version -ne "latest") { $parsed.Version } else { $entry.version }
+  $regBase = $MimoRegistry -replace "/index\.json$", ""
+  $url = if ($entry.tarball) { "$regBase/$($entry.tarball)" } else { "$regBase/$name/$version/$name.tar.gz" }
+  Ensure-Dirs
+  $archive = Join-Path $MimoCache "$name-$version.tar.gz"
+  Write-Mimo "add luke/${name}@${version}"
+  try {
+    Download-File $url $archive
+  } catch {
+    $fb = if ($entry.url_fallback) { $entry.url_fallback } elseif ($entry.url) { $entry.url } else { "" }
+    if (-not $fb -or $fb -eq $url) { throw "download failed: $url" }
+    Write-Mimo "trying fallback URL"
+    Download-File $fb $archive
+  }
+  if ($entry.archive_sha256) {
+    $got = Get-Sha256 $archive
+    if ($got -ne $entry.archive_sha256.ToLowerInvariant()) {
+      throw "checksum mismatch: $got != $($entry.archive_sha256)"
+    }
+    Write-Mimo "sha256 ok"
+  }
+
+  New-Item -ItemType Directory -Force -Path "luke_modules" | Out-Null
+  $dest = Join-Path "luke_modules" $name
+  if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
+  & tar -xzf $archive -C luke_modules
+  if (-not ((Test-Path (Join-Path $dest "luke.pkg")) -or (Test-Path (Join-Path $dest "main.luke")) -or (Test-Path (Join-Path $dest "main.lk")))) {
+    throw "archive did not produce luke_modules/$name"
+  }
+  Record-Dependency $name $version
+  Write-LukeLock
+  Write-Mimo "installed luke/$name → $dest"
+  Write-Mimo "  import luke/$name"
+}
+
+function Remove-Package([string]$Name) {
+  if ($Name -in @("lukelang", "luke")) {
+    Eject-LukeLang
+    return
+  }
+  $dest = Join-Path "luke_modules" $Name
+  if (Test-Path $dest) {
+    Remove-Item -Recurse -Force $dest
+    Write-Mimo "removed $dest"
+  } else {
+    Write-Mimo "no $dest"
+  }
+  if (Test-Path "luke.json") {
+    $data = Get-Content -Raw "luke.json" | ConvertFrom-Json
+    if ($data.dependencies -and ($data.dependencies.PSObject.Properties.Name -contains $Name)) {
+      $data.dependencies.PSObject.Properties.Remove($Name)
+      $data | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 "luke.json"
+    }
+  }
+  if (Test-Path "luke_modules") { Write-LukeLock }
+}
+
+function Find-Luke {
+  $local = Join-Path $MimoBin "luke.exe"
+  if (Test-Path $local) { return $local }
+  $cmd = Get-Command luke -ErrorAction SilentlyContinue
+  if ($cmd) { return $cmd.Source }
+  throw "luke not found — run: mimo inject lukelang"
+}
+
+function Invoke-MimoRun([string]$File = "") {
+  $luke = Find-Luke
+  if (-not $File) {
+    if (Test-Path "luke.json") {
+      $File = (Get-Content -Raw "luke.json" | ConvertFrom-Json).main
+      if (-not $File) { $File = "main.lk" }
+    } elseif (Test-Path "main.lk") { $File = "main.lk" }
+    elseif (Test-Path "main.luke") { $File = "main.luke" }
+    else { throw "no main.lk — pass a file: mimo run app.lk" }
+  }
+  if (-not (Test-Path $File)) { throw "file not found: $File" }
+  New-Item -ItemType Directory -Force -Path ".mimo/run" | Out-Null
+  $out = ".mimo/run/app.exe"
+  Write-Mimo "BUILD $File"
+  & $luke BUILD $File -o $out
+  Write-Mimo "run $out"
+  & $out
 }
 
 function Show-Help {
   @"
-mimo $MimoVersion — inject LukeLang onto your machine
+mimo $MimoVersion — LukeLang toolchain + packages
 
-Usage:
+Toolchain:
   mimo inject lukelang[@version]
   mimo update lukelang
-  mimo list
   mimo eject lukelang
   mimo doctor
-  mimo self-install
-  mimo help
+
+Packages:
+  mimo init [name]
+  mimo add <package>[@version]
+  mimo remove <package>
+  mimo run [file]
+  mimo list
 
 Bootstrap:
   irm https://lukelang.org/mimo.ps1 | iex
@@ -197,8 +405,17 @@ switch ($cmd) {
   "list"          { Show-List }
   "ls"            { Show-List }
   "eject"         { Eject-LukeLang }
-  "remove"        { Eject-LukeLang }
   "uninstall"     { Eject-LukeLang }
+  "init"          { Initialize-Project $(if ($rest.Count) { $rest[0] } else { "" }) }
+  "add"           {
+    if (-not $rest.Count) { throw "usage: mimo add <package>[@version]" }
+    Add-Package $rest[0]
+  }
+  "remove"        {
+    if (-not $rest.Count) { throw "usage: mimo remove <package>" }
+    Remove-Package $rest[0]
+  }
+  "run"           { Invoke-MimoRun $(if ($rest.Count) { $rest[0] } else { "" }) }
   "doctor"        { Show-Doctor }
   "self-install"  { Install-Self; Show-PathHint }
   "setup"         { Install-Self; Show-PathHint }

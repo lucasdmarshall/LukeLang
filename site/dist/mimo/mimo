@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# mimo — inject LukeLang (and friends) onto your PATH.
+# mimo — LukeLang toolchain installer + package manager.
 #
 #   curl -fsSL https://lukelang.org/mimo | bash
 #   mimo inject lukelang
-#   mimo inject lukelang@0.3.0
-#   mimo list
-#   mimo update lukelang
-#   mimo eject lukelang
-#   mimo doctor
+#   mimo init
+#   mimo add greeter
+#   mimo add http
+#   mimo run
 #
 # Install root:  $MIMO_HOME (default ~/.mimo)
 # Channel URL:   $MIMO_DIST  (default https://lukelang.org/dist/mimo)
-
+# Registry URL:  $MIMO_REGISTRY (default https://lukelang.org/packages/index.json)
+#                also published as packages.lukelang.org when DNS is pointed
 set -euo pipefail
 
 MIMO_VERSION="0.3.0"
@@ -20,6 +20,7 @@ MIMO_DIST="${MIMO_DIST:-https://lukelang.org/dist/mimo}"
 MIMO_BIN="${MIMO_HOME}/bin"
 MIMO_TOOLCHAINS="${MIMO_HOME}/toolchains"
 MIMO_CACHE="${MIMO_HOME}/cache"
+MIMO_REGISTRY="${MIMO_REGISTRY:-https://lukelang.org/packages/index.json}"
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -283,16 +284,19 @@ path_hint() {
       ;;
   esac
 }
-
 list_tools() {
   ensure_dirs
   echo "mimo home: ${MIMO_HOME}"
+  echo "registry:  ${MIMO_REGISTRY}"
   echo "target:    $(detect_target)"
   echo
+  echo "toolchains:"
+  local any=0
   if [ -d "$MIMO_TOOLCHAINS" ]; then
     local d
     for d in "$MIMO_TOOLCHAINS"/lukelang-*; do
       [ -d "$d" ] || continue
+      any=1
       local ver base
       base="$(basename "$d")"
       ver="${base#lukelang-}"
@@ -303,8 +307,35 @@ list_tools() {
       fi
     done
   fi
+  [ "$any" = 1 ] || echo "  (none — mimo inject lukelang)"
   if [ -x "${MIMO_BIN}/mimo" ]; then
     echo "  mimo     (at ${MIMO_BIN}/mimo)"
+  fi
+  echo
+  echo "packages (./luke_modules):"
+  if [ -d luke_modules ]; then
+    local p found=0
+    for p in luke_modules/*/; do
+      [ -d "$p" ] || continue
+      found=1
+      echo "  luke/$(basename "$p")"
+    done
+    [ "$found" = 1 ] || echo "  (none — mimo add <name>)"
+  else
+    echo "  (none — mimo add <name>)"
+  fi
+  if [ -f luke.json ] && have python3; then
+    echo
+    echo "project: luke.json"
+    python3 - <<'PY' || true
+import json
+try:
+    d = json.load(open("luke.json", encoding="utf-8"))
+except Exception:
+    raise SystemExit
+for k, v in sorted((d.get("dependencies") or {}).items()):
+    print(f"  {k}: {v}")
+PY
   fi
 }
 
@@ -312,7 +343,7 @@ eject_tool() {
   local name="${1:-lukelang}"
   case "$name" in
     lukelang|luke) ;;
-    *) die "unknown tool '$name'" ;;
+    *) die "unknown tool '$name' (did you mean: mimo remove <package>?)" ;;
   esac
   rm -f "${MIMO_BIN}/luke" "${MIMO_BIN}/luke.exe"
   rm -f "${MIMO_HOME}/current-lukelang"
@@ -324,6 +355,7 @@ doctor() {
   echo "mimo ${MIMO_VERSION}"
   echo "home     ${MIMO_HOME}"
   echo "dist     ${MIMO_DIST}"
+  echo "registry ${MIMO_REGISTRY}"
   echo "target   $(detect_target)"
   echo "shell    ${SHELL:-unknown}"
   have curl && echo "curl     $(command -v curl)" || echo "curl     missing"
@@ -332,6 +364,8 @@ doctor() {
   if [ -x "${MIMO_BIN}/luke" ] || [ -x "${MIMO_BIN}/luke.exe" ]; then
     echo "luke     present"
     "${MIMO_BIN}/luke" 2>&1 | head -3 || true
+  elif have luke; then
+    echo "luke     $(command -v luke)"
   else
     echo "luke     not injected"
   fi
@@ -341,37 +375,268 @@ doctor() {
   esac
 }
 
+find_luke() {
+  if [ -x "${MIMO_BIN}/luke" ]; then
+    echo "${MIMO_BIN}/luke"
+  elif [ -x "${MIMO_BIN}/luke.exe" ]; then
+    echo "${MIMO_BIN}/luke.exe"
+  elif have luke; then
+    command -v luke
+  else
+    return 1
+  fi
+}
+
+fetch_registry() {
+  ensure_dirs
+  local dest="${MIMO_CACHE}/packages-index.json"
+  if download "$MIMO_REGISTRY" "$dest" 2>/dev/null; then
+    echo "$dest"
+    return
+  fi
+  # Prefer branded host when DNS/TLS are live; fall back to the main site path.
+  if [ "$MIMO_REGISTRY" != "https://packages.lukelang.org/index.json" ] && \
+     download "https://packages.lukelang.org/index.json" "$dest" 2>/dev/null; then
+    echo "$dest"
+    return
+  fi
+  if [ "$MIMO_REGISTRY" != "https://lukelang.org/packages/index.json" ]; then
+    info "trying https://lukelang.org/packages/index.json"
+    download "https://lukelang.org/packages/index.json" "$dest"
+    echo "$dest"
+    return
+  fi
+  die "cannot fetch package registry"
+}
+
+pkg_init() {
+  local name="${1:-}"
+  if [ -z "$name" ]; then
+    name="$(basename "$PWD")"
+  fi
+  if [ -f luke.json ]; then
+    die "luke.json already exists"
+  fi
+  mkdir -p luke_modules
+  cat > luke.json <<EOF
+{
+  "name": "${name}",
+  "version": "0.1.0",
+  "main": "main.lk",
+  "dependencies": {}
+}
+EOF
+  if [ ! -f main.lk ] && [ ! -f main.luke ]; then
+    cat > main.lk <<'EOF'
+print("Hello from LukeLang")
+EOF
+  fi
+  info "initialized project '${name}'"
+  info "  luke.json"
+  info "  main.lk"
+  info "  luke_modules/"
+  info "next: mimo add greeter   or   mimo run"
+}
+
+pkg_add() {
+  local spec="${1:?usage: mimo add <package>[@version]}"
+  read -r name want_ver <<<"$(parse_spec "$spec")"
+  case "$name" in
+    postgresql) name=postgres ;;
+  esac
+
+  local index entry kind
+  index="$(fetch_registry)"
+  entry="$(json_get "$index" "packages.${name}" 2>/dev/null)" \
+    || die "package '${name}' not in registry — see ${MIMO_REGISTRY}"
+
+  kind="$(printf '%s' "$entry" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("kind",""))')"
+
+  case "$kind" in
+    builtin)
+      local imp ver
+      imp="$(printf '%s' "$entry" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("import",""))')"
+      ver="$(printf '%s' "$entry" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version","0.3.0"))')"
+      info "'${name}' ships with LukeLang"
+      info "  add to your source:  import ${imp}"
+      pkg_record_dep "$name" "builtin:${ver}"
+      return 0
+      ;;
+    planned)
+      die "'${name}' is planned but not published yet — see packages.lukelang.org"
+      ;;
+  esac
+
+  local version url sha archive dest reg_base tarball
+  version="$(printf '%s' "$entry" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))')"
+  [ -n "$version" ] || die "registry entry for ${name} missing version"
+  if [ "$want_ver" != "latest" ]; then
+    version="$want_ver"
+  fi
+  sha="$(printf '%s' "$entry" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("archive_sha256") or "")')"
+  tarball="$(printf '%s' "$entry" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("tarball") or "")')"
+  reg_base="${MIMO_REGISTRY%/index.json}"
+  if [ -n "$tarball" ]; then
+    url="${reg_base}/${tarball}"
+  else
+    url="${reg_base}/${name}/${version}/${name}.tar.gz"
+  fi
+
+  ensure_dirs
+  archive="${MIMO_CACHE}/${name}-${version}.tar.gz"
+  info "add luke/${name}@${version}"
+  if ! download "$url" "$archive" 2>/dev/null; then
+    local fb
+    fb="$(printf '%s' "$entry" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("url_fallback") or d.get("url") or "")')"
+    [ -n "$fb" ] && [ "$fb" != "$url" ] || die "download failed: $url"
+    info "trying fallback URL"
+    download "$fb" "$archive"
+  fi
+  if [ -n "$sha" ]; then
+    local got
+    got="$(sha256_of "$archive")"
+    [ "$got" = "$sha" ] || die "checksum mismatch: got ${got}, want ${sha}"
+    info "sha256 ok"
+  fi
+
+  mkdir -p luke_modules
+  dest="luke_modules/${name}"
+  rm -rf "$dest"
+  tar -xzf "$archive" -C luke_modules
+  if [ ! -f "${dest}/luke.pkg" ] && [ ! -f "${dest}/main.luke" ] && [ ! -f "${dest}/main.lk" ]; then
+    die "archive did not produce luke_modules/${name}"
+  fi
+  pkg_record_dep "$name" "$version"
+  pkg_write_lock
+  info "installed luke/${name} → ${dest}"
+  info "  import luke/${name}"
+}
+
+pkg_record_dep() {
+  local name="$1" version="$2"
+  if [ ! -f luke.json ]; then
+    pkg_init "$(basename "$PWD")"
+  fi
+  python3 - "$name" "$version" <<'PY'
+import json, sys
+name, version = sys.argv[1], sys.argv[2]
+path = "luke.json"
+data = json.load(open(path, encoding="utf-8"))
+deps = data.setdefault("dependencies", {})
+deps[name] = version
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2) + "\n")
+PY
+}
+
+pkg_write_lock() {
+  python3 - <<'PY'
+import hashlib
+from pathlib import Path
+root = Path("luke_modules")
+lines = ["# luke.lock — written by mimo", "lock_version=1", ""]
+if root.is_dir():
+    for d in sorted(p for p in root.iterdir() if p.is_dir()):
+        blob = b""
+        for part in ("luke.pkg", "main.luke", "main.lk"):
+            f = d / part
+            if f.is_file():
+                blob += f.read_bytes()
+        ver = "0.0.0"
+        pkg = d / "luke.pkg"
+        if pkg.is_file():
+            for line in pkg.read_text(encoding="utf-8").splitlines():
+                if line.startswith("version="):
+                    ver = line.split("=", 1)[1].strip()
+        digest = hashlib.sha256(blob).hexdigest() if blob else ""
+        lines.append(f"package {d.name} version {ver} sha256 {digest}")
+Path("luke.lock").write_text("\n".join(lines) + "\n", encoding="utf-8")
+PY
+  info "wrote luke.lock"
+}
+
+pkg_remove() {
+  local name="${1:?usage: mimo remove <package>}"
+  case "$name" in
+    lukelang|luke)
+      eject_tool lukelang
+      return
+      ;;
+  esac
+  if [ -d "luke_modules/${name}" ]; then
+    rm -rf "luke_modules/${name}"
+    info "removed luke_modules/${name}"
+  else
+    info "no luke_modules/${name}"
+  fi
+  if [ -f luke.json ]; then
+    python3 - "$name" <<'PY'
+import json, sys
+name = sys.argv[1]
+data = json.load(open("luke.json", encoding="utf-8"))
+deps = data.get("dependencies") or {}
+if name in deps:
+    del deps[name]
+    data["dependencies"] = deps
+    open("luke.json", "w", encoding="utf-8").write(json.dumps(data, indent=2) + "\n")
+PY
+  fi
+  [ -d luke_modules ] && pkg_write_lock || true
+}
+
+pkg_run() {
+  local file="${1:-}"
+  local luke_bin
+  luke_bin="$(find_luke)" || die "luke not found — run: mimo inject lukelang"
+  if [ -z "$file" ]; then
+    if [ -f luke.json ]; then
+      file="$(python3 -c 'import json; print(json.load(open("luke.json")).get("main","main.lk"))')"
+    elif [ -f main.lk ]; then
+      file=main.lk
+    elif [ -f main.luke ]; then
+      file=main.luke
+    else
+      die "no main.lk — pass a file: mimo run app.lk"
+    fi
+  fi
+  [ -f "$file" ] || die "file not found: $file"
+  mkdir -p .mimo/run
+  local out=".mimo/run/app"
+  info "BUILD ${file}"
+  "$luke_bin" BUILD "$file" -o "$out"
+  info "run ${out}"
+  "$out"
+}
+
 usage() {
   cat <<EOF
-mimo ${MIMO_VERSION} — inject LukeLang onto your machine
+mimo ${MIMO_VERSION} — LukeLang toolchain + packages
 
-Usage:
-  mimo inject lukelang[@version]   Download and activate the compiler
-  mimo update lukelang             Re-inject the channel latest
-  mimo list                        Show installed toolchains
-  mimo eject lukelang              Remove lukelang toolchains
+Toolchain:
+  mimo inject lukelang[@version]   Install the compiler
+  mimo update lukelang             Update to channel latest
+  mimo eject lukelang              Remove the compiler
   mimo doctor                      Diagnose install / PATH
-  mimo self-install                Install this mimo into ${MIMO_BIN}
-  mimo help                        Show this help
+
+Packages:
+  mimo init [name]                 Create luke.json + main.lk
+  mimo add <package>[@version]     Install from the package registry
+  mimo remove <package>            Remove from luke_modules/
+  mimo run [file]                  Build and run the project
+  mimo list                        Toolchains + packages
 
 Environment:
-  MIMO_HOME   install root (default: ~/.mimo)
-  MIMO_DIST   artifact root (default: https://lukelang.org/dist/mimo)
+  MIMO_HOME       ~/.mimo
+  MIMO_DIST       https://lukelang.org/dist/mimo
+  MIMO_REGISTRY   https://lukelang.org/packages/index.json
+                  (also packages.lukelang.org when DNS is live)
 
 Bootstrap:
   curl -fsSL https://lukelang.org/mimo | bash
-  # Windows (PowerShell):
-  irm https://lukelang.org/mimo.ps1 | iex
 EOF
 }
 
-# ---------------------------------------------------------------------------
-# entry
-# ---------------------------------------------------------------------------
-
 main() {
   local cmd="${1:-}"
-  # curl | bash with no args → self-install + inject lukelang
   if [ -z "$cmd" ]; then
     install_self
     inject_tool lukelang stable
@@ -389,8 +654,22 @@ main() {
     list|ls)
       list_tools
       ;;
-    eject|remove|uninstall)
+    eject|uninstall)
       eject_tool "${1:-lukelang}"
+      ;;
+    init)
+      pkg_init "${1:-}"
+      ;;
+    add|install)
+      [ $# -ge 1 ] || die "usage: mimo add <package>"
+      pkg_add "$1"
+      ;;
+    remove|rm)
+      [ $# -ge 1 ] || die "usage: mimo remove <package>"
+      pkg_remove "$1"
+      ;;
+    run)
+      pkg_run "${1:-}"
       ;;
     doctor)
       doctor

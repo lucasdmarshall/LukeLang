@@ -225,14 +225,21 @@
       <section id="packages">
         <h2>Packages</h2>
         <p>
-          After <code>luke</code> is on your <code>PATH</code>, the language package manager
-          resolves libraries into <code>luke_modules/</code>:
+          <b>mimo</b> is also the package manager. Dependencies land in
+          <code>luke_modules/</code> and lock in <code>luke.lock</code>.
         </p>
-<pre><code><span class="ln"><b class="sh">luke</b> PKG install greeter</span>
-<span class="ln"><b class="kw">import</b> luke/greeter</span></code></pre>
+<pre><code><span class="ln"><b class="sh">mimo</b> init</span>
+<span class="ln"><b class="sh">mimo</b> add greeter</span>
+<span class="ln"><b class="sh">mimo</b> add http          <b class="cm"># builtin → import std/http</b></span>
+<span class="ln"><b class="sh">mimo</b> run</span></code></pre>
+        <p>Then import a registry package:</p>
+<pre><code><span class="ln"><b class="kw">import</b> luke/greeter</span></code></pre>
         <p>
-          mimo installs the compiler. <code>luke PKG</code> installs LukeLang libraries —
-          the same split as a language toolchain versus <code>pip</code>.
+          Registry:
+          <a href="https://lukelang.org/packages/">lukelang.org/packages</a>
+          · index <a href="https://lukelang.org/packages/index.json"><code>index.json</code></a>
+          (alias <a href="https://packages.lukelang.org">packages.lukelang.org</a> when DNS is live).
+          <code>luke PKG</code> still works as the low-level engine.
         </p>
       </section>
 

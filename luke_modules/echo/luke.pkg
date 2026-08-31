@@ -1,4 +1,4 @@
 name=echo
 entry=main.luke
-description=Tiny echo helpers for registry demos
 version=0.1.0
+description=Tiny echo helpers
