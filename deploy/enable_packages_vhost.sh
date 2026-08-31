@@ -10,9 +10,9 @@ cp "$CONF_SRC" "$CONF_DST"
 ln -sfn "$CONF_DST" /etc/nginx/sites-enabled/packages.lukelang.org.conf
 
 # Expand the existing lukelang.org certificate to cover packages.
-certbot --nginx -d lukelang.org -d www.lukelang.org -d status.lukelang.org \
+certbot certonly --nginx -d lukelang.org -d www.lukelang.org -d status.lukelang.org \
   -d packages.lukelang.org --expand --non-interactive --agree-tos \
-  --redirect || true
+  --cert-name lukelang.org || true
 
 nginx -t
 systemctl reload nginx

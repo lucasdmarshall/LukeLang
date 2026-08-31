@@ -135,8 +135,8 @@ mimo run
 ```
 
 Covers Linux, macOS and Windows — Intel, Apple Silicon, ARM, 32-bit and 64-bit.
-Package index: [lukelang.org/packages](https://lukelang.org/packages/)
-(and [packages.lukelang.org](https://packages.lukelang.org) once DNS points at the VPS).
+Package index: [packages.lukelang.org](https://packages.lukelang.org)
+(also mirrored at [lukelang.org/packages](https://lukelang.org/packages/)).
 Details and binary downloads are on
 [download](https://lukelang.org/download/).
 

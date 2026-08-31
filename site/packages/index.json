@@ -2,7 +2,7 @@
   "name": "lukelang-packages",
   "version": "0.3.0",
   "description": "Official LukeLang package index \u2014 mimo forge <name>",
-  "home": "https://lukelang.org/packages",
+  "home": "https://packages.lukelang.org",
   "updated": "2026-08-31",
   "packages": {
     "http": {
@@ -99,20 +99,20 @@
       "version": "0.1.0",
       "kind": "package",
       "description": "Tiny echo helpers",
-      "url": "https://lukelang.org/packages/echo/0.1.0/echo.tar.gz",
-      "url_fallback": "https://packages.lukelang.org/echo/0.1.0/echo.tar.gz",
+      "url": "https://packages.lukelang.org/echo/0.1.0/echo.tar.gz",
+      "url_fallback": "https://lukelang.org/packages/echo/0.1.0/echo.tar.gz",
       "sha256": "892f6b8cc4dea82a32b7f6f67f3f171230b798a167adf82a083334afabe97061",
-      "archive_sha256": "8ced2e514407e3174786734bbc2f9811c54ecfe3a4fc275ca74ffec2dc8983de",
+      "archive_sha256": "56f4a7a469e3a57308c1e43191ebc4df22d8e6f0ca46b093cf8520cdf1771ef1",
       "tarball": "echo/0.1.0/echo.tar.gz"
     },
     "greeter": {
       "version": "0.1.0",
       "kind": "package",
       "description": "Hello helper for luke/greeter",
-      "url": "https://lukelang.org/packages/greeter/0.1.0/greeter.tar.gz",
-      "url_fallback": "https://packages.lukelang.org/greeter/0.1.0/greeter.tar.gz",
+      "url": "https://packages.lukelang.org/greeter/0.1.0/greeter.tar.gz",
+      "url_fallback": "https://lukelang.org/packages/greeter/0.1.0/greeter.tar.gz",
       "sha256": "0d4ba543d9fa2028bcbf9c00258d110b58ec527f6b908bd5d71340f978ce3755",
-      "archive_sha256": "787f5a567bc2a84f94fb2a4be89a16a1c900aaba9163fb6b36bb311cd26a8267",
+      "archive_sha256": "9975fe16095aeec6df15c04f5f224557905619ea20b047cdef3f96aa9ec24662",
       "tarball": "greeter/0.1.0/greeter.tar.gz"
     }
   }

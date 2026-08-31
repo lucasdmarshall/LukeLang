@@ -13,8 +13,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/registry/packages"
 OUT="$ROOT/site/packages"
-ORIGIN="${MIMO_PKG_ORIGIN:-https://lukelang.org/packages}"
-FALLBACK_ORIGIN="https://packages.lukelang.org"
+ORIGIN="${MIMO_PKG_ORIGIN:-https://packages.lukelang.org}"
+FALLBACK_ORIGIN="https://lukelang.org/packages"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
@@ -155,7 +155,7 @@ html = f"""<!DOCTYPE html>
 </header>
 <main>
   <section class="masthead">
-    <p class="masthead__kicker">lukelang.org/packages</p>
+    <p class="masthead__kicker">packages.lukelang.org</p>
     <h1>mimo <em>forge</em></h1>
     <p>Official package index. Builtin modules ship with the compiler; packages install into <code>luke_modules/</code>.</p>
   </section>

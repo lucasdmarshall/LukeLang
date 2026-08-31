@@ -10,8 +10,7 @@
 #
 # Install root:  $MIMO_HOME (default ~/.mimo)
 # Channel URL:   $MIMO_DIST  (default https://lukelang.org/dist/mimo)
-# Registry URL:  $MIMO_REGISTRY (default https://lukelang.org/packages/index.json)
-#                also published as packages.lukelang.org when DNS is pointed
+# Registry URL:  $MIMO_REGISTRY (default https://packages.lukelang.org/index.json)
 set -euo pipefail
 
 MIMO_VERSION="0.3.0"
@@ -20,7 +19,7 @@ MIMO_DIST="${MIMO_DIST:-https://lukelang.org/dist/mimo}"
 MIMO_BIN="${MIMO_HOME}/bin"
 MIMO_TOOLCHAINS="${MIMO_HOME}/toolchains"
 MIMO_CACHE="${MIMO_HOME}/cache"
-MIMO_REGISTRY="${MIMO_REGISTRY:-https://lukelang.org/packages/index.json}"
+MIMO_REGISTRY="${MIMO_REGISTRY:-https://packages.lukelang.org/index.json}"
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -627,8 +626,7 @@ Packages:
 Environment:
   MIMO_HOME       ~/.mimo
   MIMO_DIST       https://lukelang.org/dist/mimo
-  MIMO_REGISTRY   https://lukelang.org/packages/index.json
-                  (also packages.lukelang.org when DNS is live)
+  MIMO_REGISTRY   https://packages.lukelang.org/index.json
 
 Bootstrap:
   curl -fsSL https://lukelang.org/mimo | bash

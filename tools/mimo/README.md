@@ -24,7 +24,7 @@ irm https://lukelang.org/mimo.ps1 | iex
 |---|---|
 | `mimo inject lukelang` | Install / activate the compiler |
 | `mimo init [name]` | Create `luke.json` + `main.lk` |
-| `mimo forge <pkg>` | Install from [lukelang.org/packages](https://lukelang.org/packages/) |
+| `mimo forge <pkg>` | Install from [packages.lukelang.org](https://packages.lukelang.org) |
 | `mimo remove <pkg>` | Remove from `luke_modules/` |
 | `mimo run [file]` | `luke BUILD` + execute |
 | `mimo list` | Toolchains + packages |
