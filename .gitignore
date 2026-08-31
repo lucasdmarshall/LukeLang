@@ -1,4 +1,6 @@
 vm/build/
+vm/build-mimo-*/
+dist/mimo-out/
 *.o
 *.obj
 *.exe

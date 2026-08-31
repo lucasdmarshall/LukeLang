@@ -1,0 +1,414 @@
+#!/usr/bin/env bash
+# mimo — inject LukeLang (and friends) onto your PATH.
+#
+#   curl -fsSL https://lukelang.org/mimo | bash
+#   mimo inject lukelang
+#   mimo inject lukelang@0.3.0
+#   mimo list
+#   mimo update lukelang
+#   mimo eject lukelang
+#   mimo doctor
+#
+# Install root:  $MIMO_HOME (default ~/.mimo)
+# Channel URL:   $MIMO_DIST  (default https://lukelang.org/dist/mimo)
+
+set -euo pipefail
+
+MIMO_VERSION="0.3.0"
+MIMO_HOME="${MIMO_HOME:-${HOME}/.mimo}"
+MIMO_DIST="${MIMO_DIST:-https://lukelang.org/dist/mimo}"
+MIMO_BIN="${MIMO_HOME}/bin"
+MIMO_TOOLCHAINS="${MIMO_HOME}/toolchains"
+MIMO_CACHE="${MIMO_HOME}/cache"
+
+# ---------------------------------------------------------------------------
+# helpers
+# ---------------------------------------------------------------------------
+
+die() { printf 'mimo: %s\n' "$*" >&2; exit 1; }
+info() { printf 'mimo: %s\n' "$*"; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+download() {
+  local url="$1" dest="$2"
+  if have curl; then
+    curl -fsSL --retry 3 --retry-delay 1 "$url" -o "$dest"
+  elif have wget; then
+    wget -q -O "$dest" "$url"
+  else
+    die "need curl or wget to download $url"
+  fi
+}
+
+sha256_of() {
+  local f="$1"
+  if have sha256sum; then
+    sha256sum "$f" | awk '{print $1}'
+  elif have shasum; then
+    shasum -a 256 "$f" | awk '{print $1}'
+  elif have openssl; then
+    openssl dgst -sha256 "$f" | awk '{print $NF}'
+  else
+    die "need sha256sum, shasum, or openssl"
+  fi
+}
+
+# Host target triple used in release artifacts.
+detect_target() {
+  local os arch
+  os="$(uname -s 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+  arch="$(uname -m 2>/dev/null)"
+
+  case "$os" in
+    linux*)  os=linux ;;
+    darwin*) os=darwin ;;
+    msys*|mingw*|cygwin*) os=windows ;;
+    *) die "unsupported OS: $(uname -s)" ;;
+  esac
+
+  case "$arch" in
+    x86_64|amd64)      arch=x86_64 ;;
+    i386|i486|i586|i686) arch=i686 ;;
+    aarch64|arm64)     arch=arm64 ;;
+    armv7l|armv7|armhf|armv6l) arch=armv7 ;;
+    *) die "unsupported arch: $arch" ;;
+  esac
+
+  # Normalize to artifact names.
+  case "$os-$arch" in
+    linux-x86_64)   echo "linux-x86_64" ;;
+    linux-i686)     echo "linux-i686" ;;
+    linux-arm64)    echo "linux-aarch64" ;;
+    linux-armv7)    echo "linux-armv7" ;;
+    darwin-x86_64)  echo "darwin-x86_64" ;;
+    darwin-arm64)   echo "darwin-arm64" ;;
+    windows-x86_64) echo "windows-x86_64" ;;
+    windows-i686)   echo "windows-i686" ;;
+    windows-arm64)  echo "windows-arm64" ;;
+    *) die "no artifact mapping for $os-$arch" ;;
+  esac
+}
+
+ensure_dirs() {
+  mkdir -p "$MIMO_BIN" "$MIMO_TOOLCHAINS" "$MIMO_CACHE"
+}
+
+install_self() {
+  ensure_dirs
+  local self dest
+  self="${BASH_SOURCE[0]:-$0}"
+  if [ -f "$self" ] && grep -q 'inject LukeLang' "$self" 2>/dev/null; then
+    cp "$self" "${MIMO_BIN}/mimo"
+  else
+    # Running via curl | bash — re-fetch the canonical script.
+    download "${MIMO_DIST}/mimo" "${MIMO_BIN}/mimo"
+  fi
+  chmod +x "${MIMO_BIN}/mimo"
+  info "installed mimo ${MIMO_VERSION} → ${MIMO_BIN}/mimo"
+}
+
+# ---------------------------------------------------------------------------
+# channel / inject
+# ---------------------------------------------------------------------------
+
+channel_url() {
+  local channel="${1:-stable}"
+  echo "${MIMO_DIST}/channel/${channel}.json"
+}
+
+fetch_channel() {
+  local channel="${1:-stable}"
+  local dest="${MIMO_CACHE}/${channel}.json"
+  download "$(channel_url "$channel")" "$dest"
+  echo "$dest"
+}
+
+json_get() {
+  # Minimal JSON string/object field reader without jq dependency.
+  # Usage: json_get <file> <dotted.path>
+  # Supports flat keys and one-level nested objects used by our manifest.
+  local file="$1" path="$2"
+  if have python3; then
+    python3 - "$file" "$path" <<'PY'
+import json, sys
+data = json.load(open(sys.argv[1], encoding="utf-8"))
+cur = data
+for part in sys.argv[2].split("."):
+    if cur is None:
+        break
+    if isinstance(cur, dict):
+        cur = cur.get(part)
+    else:
+        cur = None
+        break
+if cur is None:
+    sys.exit(1)
+if isinstance(cur, (dict, list)):
+    print(json.dumps(cur))
+else:
+    print(cur)
+PY
+    return
+  fi
+  die "python3 required to read channel manifests"
+}
+
+parse_spec() {
+  # lukelang / lukelang@0.3.0 / lukelang@latest → name version
+  local spec="$1"
+  local name version
+  case "$spec" in
+    *@*)
+      name="${spec%@*}"
+      version="${spec#*@}"
+      ;;
+    *)
+      name="$spec"
+      version="latest"
+      ;;
+  esac
+  printf '%s %s\n' "$name" "$version"
+}
+
+artifact_ext() {
+  case "$1" in
+    windows-*) echo "zip" ;;
+    *) echo "tar.gz" ;;
+  esac
+}
+
+inject_tool() {
+  local spec="$1"
+  local channel="${2:-stable}"
+  read -r name want_ver <<<"$(parse_spec "$spec")"
+  [ "$name" = "lukelang" ] || [ "$name" = "luke" ] || die "unknown tool '$name' (try: lukelang)"
+
+  ensure_dirs
+  local manifest target version url sha256 ext archive stage root link_name
+  manifest="$(fetch_channel "$channel")"
+  target="$(detect_target)"
+
+  if [ "$want_ver" = "latest" ]; then
+    version="$(json_get "$manifest" version)" || die "channel missing version"
+  else
+    version="$want_ver"
+  fi
+
+  # Confirm the target exists in the channel (when asking for latest).
+  if [ "$want_ver" = "latest" ]; then
+    json_get "$manifest" "targets.${target}.url" >/dev/null 2>&1 \
+      || die "no ${target} build in channel ${channel} yet — see https://lukelang.org/download/"
+    sha256="$(json_get "$manifest" "targets.${target}.sha256" 2>/dev/null || true)"
+  else
+    sha256=""
+  fi
+
+  ext="$(artifact_ext "$target")"
+  # Always resolve against MIMO_DIST so mirrors / local smoke tests work.
+  url="${MIMO_DIST}/lukelang/${version}/luke-${target}.${ext}"
+
+  archive="${MIMO_CACHE}/luke-${target}-${version}.${ext}"
+  info "inject lukelang@${version} (${target})"
+  download "$url" "$archive"
+
+  if [ -n "${sha256:-}" ]; then
+    local got
+    got="$(sha256_of "$archive")"
+    [ "$got" = "$sha256" ] || die "checksum mismatch for ${archive}: got ${got}, want ${sha256}"
+    info "sha256 ok"
+  fi
+
+  root="${MIMO_TOOLCHAINS}/lukelang-${version}"
+  rm -rf "$root"
+  mkdir -p "$root"
+  stage="${MIMO_CACHE}/extract-$$"
+  rm -rf "$stage"
+  mkdir -p "$stage"
+
+  case "$ext" in
+    tar.gz) tar -xzf "$archive" -C "$stage" ;;
+    zip)
+      if have unzip; then unzip -q "$archive" -d "$stage"
+      elif have python3; then python3 - "$archive" "$stage" <<'PY'
+import sys, zipfile
+zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])
+PY
+      else die "need unzip or python3 to extract zip"
+      fi
+      ;;
+  esac
+
+  # Archive layout: luke or luke.exe at top level, optional README.
+  if [ -f "${stage}/luke" ]; then
+    mv "${stage}/luke" "${root}/luke"
+    chmod +x "${root}/luke"
+    link_name=luke
+  elif [ -f "${stage}/luke.exe" ]; then
+    mv "${stage}/luke.exe" "${root}/luke.exe"
+    link_name=luke.exe
+  else
+    # Sometimes wrapped in a directory.
+    local found
+    found="$(find "$stage" -maxdepth 3 \( -name luke -o -name luke.exe \) -type f | head -1)"
+    [ -n "$found" ] || die "archive missing luke binary"
+    if [[ "$found" == *.exe ]]; then
+      mv "$found" "${root}/luke.exe"
+      link_name=luke.exe
+    else
+      mv "$found" "${root}/luke"
+      chmod +x "${root}/luke"
+      link_name=luke
+    fi
+  fi
+  rm -rf "$stage"
+
+  ln -sfn "${root}/${link_name}" "${MIMO_BIN}/luke"
+  # Also keep a non-.exe alias name on Windows-friendly shells.
+  if [ "$link_name" = "luke.exe" ]; then
+    ln -sfn "${root}/luke.exe" "${MIMO_BIN}/luke.exe" 2>/dev/null || cp "${root}/luke.exe" "${MIMO_BIN}/luke.exe"
+  fi
+
+  printf '%s\n' "$version" > "${MIMO_HOME}/current-lukelang"
+  info "lukelang ${version} ready"
+  info "binary: ${MIMO_BIN}/luke"
+  path_hint
+}
+
+path_hint() {
+  case ":${PATH}:" in
+    *":${MIMO_BIN}:"*) info "PATH already contains ${MIMO_BIN}" ;;
+    *)
+      info "add to your shell profile:"
+      printf '\n  export PATH="%s:$PATH"\n\n' "$MIMO_BIN"
+      ;;
+  esac
+}
+
+list_tools() {
+  ensure_dirs
+  echo "mimo home: ${MIMO_HOME}"
+  echo "target:    $(detect_target)"
+  echo
+  if [ -d "$MIMO_TOOLCHAINS" ]; then
+    local d
+    for d in "$MIMO_TOOLCHAINS"/lukelang-*; do
+      [ -d "$d" ] || continue
+      local ver base
+      base="$(basename "$d")"
+      ver="${base#lukelang-}"
+      if [ -f "${MIMO_HOME}/current-lukelang" ] && [ "$(cat "${MIMO_HOME}/current-lukelang")" = "$ver" ]; then
+        echo "  lukelang ${ver}  (active)"
+      else
+        echo "  lukelang ${ver}"
+      fi
+    done
+  fi
+  if [ -x "${MIMO_BIN}/mimo" ]; then
+    echo "  mimo     (at ${MIMO_BIN}/mimo)"
+  fi
+}
+
+eject_tool() {
+  local name="${1:-lukelang}"
+  case "$name" in
+    lukelang|luke) ;;
+    *) die "unknown tool '$name'" ;;
+  esac
+  rm -f "${MIMO_BIN}/luke" "${MIMO_BIN}/luke.exe"
+  rm -f "${MIMO_HOME}/current-lukelang"
+  rm -rf "${MIMO_TOOLCHAINS}"/lukelang-*
+  info "ejected lukelang"
+}
+
+doctor() {
+  echo "mimo ${MIMO_VERSION}"
+  echo "home     ${MIMO_HOME}"
+  echo "dist     ${MIMO_DIST}"
+  echo "target   $(detect_target)"
+  echo "shell    ${SHELL:-unknown}"
+  have curl && echo "curl     $(command -v curl)" || echo "curl     missing"
+  have wget && echo "wget     $(command -v wget)" || true
+  have python3 && echo "python3  $(command -v python3)" || echo "python3  missing (needed for manifests)"
+  if [ -x "${MIMO_BIN}/luke" ] || [ -x "${MIMO_BIN}/luke.exe" ]; then
+    echo "luke     present"
+    "${MIMO_BIN}/luke" 2>&1 | head -3 || true
+  else
+    echo "luke     not injected"
+  fi
+  case ":${PATH}:" in
+    *":${MIMO_BIN}:"*) echo "PATH     ok" ;;
+    *) echo "PATH     missing ${MIMO_BIN}" ;;
+  esac
+}
+
+usage() {
+  cat <<EOF
+mimo ${MIMO_VERSION} — inject LukeLang onto your machine
+
+Usage:
+  mimo inject lukelang[@version]   Download and activate the compiler
+  mimo update lukelang             Re-inject the channel latest
+  mimo list                        Show installed toolchains
+  mimo eject lukelang              Remove lukelang toolchains
+  mimo doctor                      Diagnose install / PATH
+  mimo self-install                Install this mimo into ${MIMO_BIN}
+  mimo help                        Show this help
+
+Environment:
+  MIMO_HOME   install root (default: ~/.mimo)
+  MIMO_DIST   artifact root (default: https://lukelang.org/dist/mimo)
+
+Bootstrap:
+  curl -fsSL https://lukelang.org/mimo | bash
+  # Windows (PowerShell):
+  irm https://lukelang.org/mimo.ps1 | iex
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# entry
+# ---------------------------------------------------------------------------
+
+main() {
+  local cmd="${1:-}"
+  # curl | bash with no args → self-install + inject lukelang
+  if [ -z "$cmd" ]; then
+    install_self
+    inject_tool lukelang stable
+    return
+  fi
+  shift || true
+  case "$cmd" in
+    inject)
+      [ $# -ge 1 ] || die "usage: mimo inject lukelang[@version]"
+      inject_tool "$1" "${2:-stable}"
+      ;;
+    update)
+      inject_tool "${1:-lukelang}" stable
+      ;;
+    list|ls)
+      list_tools
+      ;;
+    eject|remove|uninstall)
+      eject_tool "${1:-lukelang}"
+      ;;
+    doctor)
+      doctor
+      ;;
+    self-install|setup)
+      install_self
+      path_hint
+      ;;
+    help|-h|--help)
+      usage
+      ;;
+    version|--version|-V)
+      echo "mimo ${MIMO_VERSION}"
+      ;;
+    *)
+      die "unknown command '$cmd' (try: mimo help)"
+      ;;
+  esac
+}
+
+main "$@"

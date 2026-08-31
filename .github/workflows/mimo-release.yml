@@ -1,0 +1,152 @@
+name: mimo release
+
+# Build LukeLang binaries for every supported mimo target and attach them to
+# a GitHub Release when a version tag is pushed. Also runnable manually.
+#
+# Targets:
+#   linux-x86_64 linux-i686 linux-aarch64 linux-armv7
+#   darwin-x86_64 darwin-arm64
+#   windows-x86_64 windows-i686 windows-arm64
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to stamp (defaults to VERSION file)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: linux-x86_64
+            os: ubuntu-latest
+            target: linux-x86_64
+            setup: ""
+          - id: linux-i686
+            os: ubuntu-latest
+            target: linux-i686
+            setup: sudo apt-get update && sudo apt-get install -y g++-i686-linux-gnu
+          - id: linux-aarch64
+            os: ubuntu-latest
+            target: linux-aarch64
+            setup: sudo apt-get update && sudo apt-get install -y g++-aarch64-linux-gnu
+          - id: linux-armv7
+            os: ubuntu-latest
+            target: linux-armv7
+            setup: sudo apt-get update && sudo apt-get install -y g++-arm-linux-gnueabihf
+          - id: darwin-arm64
+            os: macos-latest
+            target: darwin-arm64
+            setup: ""
+          - id: darwin-x86_64
+            os: macos-13
+            target: darwin-x86_64
+            setup: ""
+          - id: windows-x86_64
+            os: windows-latest
+            target: windows-x86_64
+            setup: msys2
+          - id: windows-i686
+            os: windows-latest
+            target: windows-i686
+            setup: msys2-i686
+          - id: windows-arm64
+            os: windows-11-arm
+            target: windows-arm64
+            setup: msys2
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.target }}
+    continue-on-error: ${{ matrix.target == 'windows-arm64' || matrix.target == 'windows-i686' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux cross toolchain
+        if: runner.os == 'Linux' && matrix.setup != ''
+        run: ${{ matrix.setup }}
+
+      - name: Setup MSYS2 (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.setup == 'msys2-i686' && 'MINGW32' || 'MINGW64' }}
+          update: true
+          install: >-
+            make
+            tar
+            zip
+            ${{ matrix.setup == 'msys2-i686' && 'mingw-w64-i686-gcc mingw-w64-i686-gcc-libs' || 'mingw-w64-x86_64-gcc mingw-w64-x86_64-gcc-libs' }}
+
+      - name: Build (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x scripts/mimo_build_release.sh
+          scripts/mimo_build_release.sh "${{ matrix.target }}"
+
+      - name: Build (Windows / MSYS2)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          chmod +x scripts/mimo_build_release.sh
+          export CXX=g++
+          scripts/mimo_build_release.sh "${{ matrix.target }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: luke-${{ matrix.target }}
+          path: |
+            dist/mimo-out/luke-${{ matrix.target }}.*
+          if-no-files-found: ignore
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/artifacts
+
+      - name: Flatten into dist/mimo-out
+        run: |
+          mkdir -p dist/mimo-out
+          find dist/artifacts -type f \( -name 'luke-*.tar.gz' -o -name 'luke-*.zip' -o -name 'luke-*.sha256' \) \
+            -exec cp -v {} dist/mimo-out/ \;
+          ls -la dist/mimo-out
+
+      - name: Assemble site/dist/mimo + channel manifest
+        run: |
+          chmod +x scripts/mimo_publish_dist.sh
+          scripts/mimo_publish_dist.sh
+          python3 scripts/build_site_meta.py
+
+      - name: Upload dist tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: mimo-site-dist
+          path: site/dist/mimo
+
+      - name: Create / update GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/mimo-out/*
+            site/dist/mimo/channel/stable.json
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

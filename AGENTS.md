@@ -57,6 +57,9 @@ explicitly post-deprecation-window work — see [`docs/SYNTAX_V2_PLAN.md`](docs/
 
 ## 3) Build and run
 
+End users install with **mimo** (`curl -fsSL https://lukelang.org/mimo | bash` →
+`mimo inject lukelang`). Contributors build from this tree:
+
 From the repository root:
 
 ```bash
@@ -146,6 +149,20 @@ Run a single example first, then the focused script, then `make test`. If the fu
 slow while iterating, state exactly which subset you ran.
 
 ## 6) The website is generated — regenerate it or CI fails
+
+After editing `docs/**` or `documentations/papers/**`:
+
+```bash
+python3 scripts/build_site_docs.py
+python3 scripts/build_site_meta.py
+```
+
+After changing `tools/mimo/*` or rebuilding release binaries:
+
+```bash
+scripts/mimo_publish_dist.sh    # syncs site/mimo + site/dist/mimo
+python3 scripts/build_site_meta.py
+```
 
 `site/` is the deployed lukelang.org. Two parts of it are **generated from the repository**:
 

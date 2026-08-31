@@ -1,0 +1,28 @@
+{
+  "name": "lukelang",
+  "version": "0.3.0",
+  "released": "2026-08-31",
+  "mimo_min": "0.3.0",
+  "targets": {
+    "linux-aarch64": {
+      "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-aarch64.tar.gz",
+      "sha256": "cd2b1c1c4cee6e9f8415356260482863d0498ae98c96a648ce3d0fb5718e89a2",
+      "binary": "luke"
+    },
+    "linux-armv7": {
+      "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-armv7.tar.gz",
+      "sha256": "483e266e415191e8f2489661a151bf03fffbfe30fc9c38319be52ba9af296979",
+      "binary": "luke"
+    },
+    "linux-i686": {
+      "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-i686.tar.gz",
+      "sha256": "a7070d3c8e34781639fdce86882d605b0e6825573b510b55aeef71ed0b469f67",
+      "binary": "luke"
+    },
+    "linux-x86_64": {
+      "url": "https://lukelang.org/dist/mimo/lukelang/0.3.0/luke-linux-x86_64.tar.gz",
+      "sha256": "e019f810aa3956dbc66c83e76fbb8513118b6495808e2860e9b37cf2360060f4",
+      "binary": "luke"
+    }
+  }
+}

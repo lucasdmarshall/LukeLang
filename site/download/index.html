@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Download — LukeLang</title>
-<meta name="description" content="Build the LukeLang compiler from source on Linux, macOS or Windows, add the optional WebAssembly and database dependencies, and verify the install with the test suite." />
+<meta name="description" content="Inject LukeLang with mimo — one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit." />
 <meta name="theme-color" content="#050806" />
 <link rel="icon" href="../assets/favicon.png" type="image/png" />
 <!-- seo:begin -->
@@ -17,16 +17,16 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://lukelang.org/download/" />
 <meta property="og:title" content="Download — LukeLang" />
-<meta property="og:description" content="Build the LukeLang compiler from source on Linux, macOS or Windows, add the optional WebAssembly and database dependencies, and verify the install with the test suite." />
+<meta property="og:description" content="Inject LukeLang with mimo — one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit." />
 <meta property="og:image" content="https://lukelang.org/assets/og.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="LukeLang — Myanmar's first official programming language" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Download — LukeLang" />
-<meta name="twitter:description" content="Build the LukeLang compiler from source on Linux, macOS or Windows, add the optional WebAssembly and database dependencies, and verify the install with the test suite." />
+<meta name="twitter:description" content="Inject LukeLang with mimo — one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit." />
 <meta name="twitter:image" content="https://lukelang.org/assets/og.png" />
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"WebPage","name":"Download","description":"Build the LukeLang compiler from source on Linux, macOS or Windows, add the optional WebAssembly and database dependencies, and verify the install with the test suite.","url":"https://lukelang.org/download/","isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://lukelang.org/#website","url":"https://lukelang.org","name":"LukeLang","description":"Myanmar's first official programming language \u2014 reactive-native and full-stack, compiling to native C and WebAssembly.","inLanguage":"en","publisher":{"@id":"https://lukelang.org/#author"}},{"@type":"Person","@id":"https://lukelang.org/#author","name":"Kaung Myat San","jobTitle":"Creator of LukeLang","nationality":"Myanmar"},{"@type":"WebPage","name":"Download","description":"Inject LukeLang with mimo \u2014 one command for Linux, macOS and Windows across Intel, Apple Silicon, ARM, 32-bit and 64-bit.","url":"https://lukelang.org/download/","isPartOf":{"@id":"https://lukelang.org/#website"},"inLanguage":"en"}]}</script>
 <!-- seo:end -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -61,11 +61,10 @@
 <main>
   <section class="masthead">
     <p class="masthead__kicker">Download</p>
-    <h1>Build it from <em>source</em>.</h1>
+    <h1>mimo <em>inject</em> lukelang</h1>
     <p>
-      LukeLang has no installer yet, and that is deliberate — the compiler is a single C++
-      binary you can build in under a minute, and building it is how you know it works on your
-      machine.
+      One command installs the LukeLang compiler. Linux, macOS and Windows —
+      Intel, Apple Silicon, ARM, 32-bit and 64-bit.
     </p>
   </section>
 
@@ -76,13 +75,12 @@
       <div class="sidebar__panel">
       <h2>On this page</h2>
       <ul>
-        <li><a href="#quick">Quick install</a></li>
-        <li><a href="#requirements">Requirements</a></li>
-        <li><a href="#platforms">Platforms</a></li>
-        <li><a href="#optional">Optional dependencies</a></li>
-        <li><a href="#verify">Verify the install</a></li>
+        <li><a href="#mimo">mimo inject</a></li>
+        <li><a href="#targets">Targets</a></li>
+        <li><a href="#verify">Verify</a></li>
         <li><a href="#editors">Editor tooling</a></li>
         <li><a href="#packages">Packages</a></li>
+        <li><a href="#source">Build from source</a></li>
       </ul>
       <h2>Next</h2>
       <ul>
@@ -94,120 +92,85 @@
 
     <div class="prose">
 
-      <section id="quick">
-        <h2>Quick <em>install</em></h2>
-<pre><code><span class="ln"><b class="sh">git</b> clone https://github.com/lucasdmarshall/LukeLang.git</span>
-<span class="ln"><b class="sh">cd</b> LukeLang/vm &amp;&amp; <b class="sh">make</b></span>
-<span class="ln"><b class="sh">./build/luke</b> BUILD ../examples/build/hello.luke -o hello &amp;&amp; ./hello</span></code></pre>
+      <section id="mimo">
+        <h2>mimo <em>inject</em></h2>
         <p>
-          The compiler lands at <code>vm/build/luke</code>. Put it on your <code>PATH</code> if
-          you want to call it from anywhere:
+          <b>mimo</b> is the LukeLang installer. It detects your machine, downloads the matching
+          binary, and puts <code>luke</code> on your <code>PATH</code>.
         </p>
-<pre><code><span class="ln"><b class="sh">export</b> PATH="$PWD/build:$PATH"</span></code></pre>
-      </section>
-
-      <section id="requirements">
-        <h2>Requirements</h2>
-        <ul class="rows">
-          <li>
-            <p class="rows__key">C++17 compiler</p>
-            <p class="rows__val"><code>g++</code> or <code>clang++</code>. This builds the compiler itself.</p>
-          </li>
-          <li>
-            <p class="rows__key">A C compiler</p>
-            <p class="rows__val"><code>cc</code> / <code>gcc</code> / <code>clang</code>. Build mode emits C and then invokes this to produce the binary.</p>
-          </li>
-          <li>
-            <p class="rows__key">make</p>
-            <p class="rows__val">Drives the compiler build and the test suite.</p>
-          </li>
-          <li>
-            <p class="rows__key">git</p>
-            <p class="rows__val">To clone, and for the version stamp in build output.</p>
-          </li>
-        </ul>
+        <h3>Linux / macOS / WSL</h3>
+<pre><code><span class="ln"><b class="sh">curl</b> -fsSL https://lukelang.org/mimo | bash</span></code></pre>
+        <h3>Windows (PowerShell)</h3>
+<pre><code><span class="ln">irm https://lukelang.org/mimo.ps1 | iex</span></code></pre>
+        <p>Already have mimo?</p>
+<pre><code><span class="ln"><b class="sh">mimo</b> inject lukelang</span>
+<span class="ln"><b class="sh">mimo</b> inject lukelang@0.3.0</span>
+<span class="ln"><b class="sh">mimo</b> update lukelang</span>
+<span class="ln"><b class="sh">mimo</b> list</span>
+<span class="ln"><b class="sh">mimo</b> doctor</span>
+<span class="ln"><b class="sh">mimo</b> eject lukelang</span></code></pre>
         <p class="note">
-          <b>That is the whole core.</b> Everything below is only needed for the feature you are
-          actually using — WebAssembly targets, SQLite, Postgres, or authentication.
+          Installs into <code>~/.mimo</code>. Add <code>~/.mimo/bin</code> to your
+          <code>PATH</code> if the installer says so.
         </p>
       </section>
 
-      <section id="platforms">
-        <h2>Platforms</h2>
-        <h3>Linux</h3>
-<pre><code><span class="ln"><b class="cm"># Debian / Ubuntu</b></span>
-<span class="ln"><b class="sh">sudo</b> apt install build-essential git</span>
-<span class="ln"></span>
-<span class="ln"><b class="cm"># Fedora</b></span>
-<span class="ln"><b class="sh">sudo</b> dnf install gcc gcc-c++ make git</span></code></pre>
-        <h3>macOS</h3>
-<pre><code><span class="ln"><b class="sh">xcode-select</b> --install</span></code></pre>
-        <p>
-          Apple's command line tools provide <code>clang</code>, <code>clang++</code> and
-          <code>make</code>. Both Apple silicon and Intel work.
-        </p>
-        <h3>Windows</h3>
-        <p>
-          Build under WSL2 with a Linux distribution and follow the Linux instructions. The
-          native Windows toolchain is not a supported target yet.
-        </p>
-      </section>
-
-      <section id="optional">
-        <h2>Optional <em>dependencies</em></h2>
-        <p>
-          Each one unlocks a specific part of the standard library. The compiler builds and the
-          core language runs without any of them.
-        </p>
+      <section id="targets">
+        <h2>Targets</h2>
         <ul class="rows">
           <li>
-            <p class="rows__key">WASI SDK</p>
-            <p class="rows__val">
-              Needed for <code>-target wasm</code> and <code>-target browser</code>. Unpack it at
-              <code>.tools/wasi-sdk</code> in the repository, or point <code>LUKE_WASI_SDK</code>
-              at wherever you installed it.
-            </p>
+            <p class="rows__key">linux-x86_64</p>
+            <p class="rows__val">Linux 64-bit Intel / AMD</p>
           </li>
           <li>
-            <p class="rows__key">SQLite</p>
-            <p class="rows__val"><code>libsqlite3-dev</code> — for <code>import std/sqlite</code>, and for every Live Graph example.</p>
+            <p class="rows__key">linux-i686</p>
+            <p class="rows__val">Linux 32-bit Intel</p>
           </li>
           <li>
-            <p class="rows__key">libsodium</p>
-            <p class="rows__val"><code>libsodium-dev</code> — Argon2id password hashing behind <code>import std/auth</code>.</p>
+            <p class="rows__key">linux-aarch64</p>
+            <p class="rows__val">Linux 64-bit ARM</p>
           </li>
           <li>
-            <p class="rows__key">libpq</p>
-            <p class="rows__val"><code>libpq-dev</code> plus a running Postgres — for <code>import std/pg</code> and the Slipstream executor.</p>
+            <p class="rows__key">linux-armv7</p>
+            <p class="rows__val">Linux 32-bit ARM</p>
           </li>
           <li>
-            <p class="rows__key">gdb</p>
-            <p class="rows__val">Only for the debugger checks in the test suite (<code>DEBUG --break</code> and <code>--inspect</code>).</p>
+            <p class="rows__key">darwin-arm64</p>
+            <p class="rows__val">Apple Silicon</p>
           </li>
           <li>
-            <p class="rows__key">Node.js</p>
-            <p class="rows__val">Runs the browser-target examples headlessly through the bundled loader script.</p>
+            <p class="rows__key">darwin-x86_64</p>
+            <p class="rows__val">Intel Mac</p>
+          </li>
+          <li>
+            <p class="rows__key">windows-x86_64</p>
+            <p class="rows__val">Windows 64-bit</p>
+          </li>
+          <li>
+            <p class="rows__key">windows-i686</p>
+            <p class="rows__val">Windows 32-bit</p>
+          </li>
+          <li>
+            <p class="rows__key">windows-arm64</p>
+            <p class="rows__val">Windows on ARM</p>
           </li>
         </ul>
-<pre><code><span class="ln"><b class="cm"># everything, on Debian / Ubuntu</b></span>
-<span class="ln"><b class="sh">sudo</b> apt install build-essential git libsqlite3-dev libsodium-dev \</span>
-<span class="ln">  libpq-dev postgresql gdb nodejs</span></code></pre>
+        <p>
+          Channel manifest:
+          <a href="/dist/mimo/channel/stable.json"><code>/dist/mimo/channel/stable.json</code></a>.
+          Direct archives live under
+          <a href="/dist/mimo/"><code>/dist/mimo/lukelang/&lt;version&gt;/</code></a>.
+        </p>
       </section>
 
       <section id="verify">
-        <h2>Verify the install</h2>
+        <h2>Verify</h2>
+<pre><code><span class="ln"><b class="sh">luke</b>                    <b class="cm"># prints usage</b></span>
+<span class="ln"><b class="sh">mimo</b> doctor</span>
+<span class="ln"><b class="sh">luke</b> BUILD hello.luke -o hello &amp;&amp; ./hello</span></code></pre>
         <p>
-          The test suite is the acceptance gate for the whole project. If it passes on your
-          machine, your install is good.
-        </p>
-<pre><code><span class="ln"><b class="sh">cd</b> LukeLang/vm</span>
-<span class="ln"><b class="sh">make</b> test               <b class="cm"># Play VM + Build mode</b></span>
-<span class="ln"><b class="sh">make</b> test-syntax-v2     <b class="cm"># syntax v2 gates</b></span>
-<span class="ln"><b class="sh">make</b> test-lsp           <b class="cm"># language server providers</b></span></code></pre>
-        <p>
-          Targets that need the WASI SDK are skipped when it is absent, and the Postgres
-          examples are skipped when no server is reachable — so a core-only install still gets
-          a green run.
+          Build mode needs a C compiler on the machine (<code>cc</code> / <code>gcc</code> /
+          <code>clang</code> / MSVC) because LukeLang emits C and invokes your toolchain.
         </p>
       </section>
 
@@ -222,51 +185,43 @@
           <a href="https://marketplace.visualstudio.com/items?itemName=lukelang.lukelang-vscode">Get it on the Marketplace</a>
           <a href="https://github.com/lucasdmarshall/LukeLang/tree/main/tools/vscode/lukelang">Extension source</a>
         </div>
-        <ul class="rows">
-          <li>
-            <p class="rows__key">VS Code extension</p>
-            <p class="rows__val">
-              Syntax highlighting, snippets and brace-aware indentation for <code>.luke</code>
-              and <code>.lk</code>, plus the language server and debugger below.
-            </p>
-          </li>
-          <li>
-            <p class="rows__key">Language server</p>
-            <p class="rows__val">
-              <code>luke LSP</code> speaks LSP over stdio — hover, completion, definition,
-              document symbols, formatting and diagnostics.
-            </p>
-          </li>
-          <li>
-            <p class="rows__key">Debug adapter</p>
-            <p class="rows__val">
-              <code>luke DAP</code> for editor debugging; <code>luke DEBUG --break file:line</code>
-              drives gdb directly, with breakpoints on your source lines.
-            </p>
-          </li>
-          <li>
-            <p class="rows__key">Formatter</p>
-            <p class="rows__val"><code>luke FMT file.luke</code> — round-trip safe, and checked as such in CI.</p>
-          </li>
-        </ul>
-        <p>
-          Setup details are in
-          <a href="../docs/editor-tooling/">editor tooling</a>.
-        </p>
       </section>
 
       <section id="packages">
         <h2>Packages</h2>
         <p>
-          LukeLang ships a small package manager. Dependencies resolve into
-          <code>luke_modules/</code> and lock to a content hash in <code>luke.lock</code>.
+          After <code>luke</code> is on your <code>PATH</code>, the language package manager
+          resolves libraries into <code>luke_modules/</code>:
         </p>
-<pre><code><span class="ln"><b class="sh">luke</b> PKG init</span>
-<span class="ln"><b class="sh">luke</b> PKG install greeter</span>
-<span class="ln"><b class="sh">luke</b> PKG lock</span>
-<span class="ln"><b class="sh">luke</b> PKG publish</span></code></pre>
-        <p>Then import it like any other module:</p>
-<pre><code><span class="ln"><b class="kw">import</b> luke/greeter</span></code></pre>
+<pre><code><span class="ln"><b class="sh">luke</b> PKG install greeter</span>
+<span class="ln"><b class="kw">import</b> luke/greeter</span></code></pre>
+        <p>
+          mimo installs the compiler. <code>luke PKG</code> installs LukeLang libraries —
+          the same split as a language toolchain versus <code>pip</code>.
+        </p>
+      </section>
+
+      <section id="source">
+        <h2>Build from <em>source</em></h2>
+        <p>
+          Contributors still clone and build. You need a C++17 compiler, a C compiler, make and git.
+        </p>
+<pre><code><span class="ln"><b class="sh">git</b> clone https://github.com/lucasdmarshall/LukeLang.git</span>
+<span class="ln"><b class="sh">cd</b> LukeLang/vm &amp;&amp; <b class="sh">make</b></span>
+<span class="ln"><b class="sh">./build/luke</b> BUILD ../examples/build/hello.luke -o hello &amp;&amp; ./hello</span></code></pre>
+        <h3>Optional dependencies</h3>
+        <ul class="rows">
+          <li>
+            <p class="rows__key">WASI SDK</p>
+            <p class="rows__val"><code>-target wasm</code> / <code>browser</code> — unpack under <code>.tools/wasi-sdk</code> or set <code>LUKE_WASI_SDK</code>.</p>
+          </li>
+          <li>
+            <p class="rows__key">SQLite / sodium / libpq</p>
+            <p class="rows__val">Only for the matching <code>std/</code> libraries. Core builds without them.</p>
+          </li>
+        </ul>
+<pre><code><span class="ln"><b class="cm"># Debian / Ubuntu</b></span>
+<span class="ln"><b class="sh">sudo</b> apt install build-essential git libsqlite3-dev libsodium-dev libpq-dev</span></code></pre>
       </section>
 
       <div class="next">

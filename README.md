@@ -119,15 +119,21 @@ in that path.
 ## Install
 
 ```bash
-git clone https://github.com/lucasdmarshall/LukeLang.git
-cd LukeLang/vm && make
+# Linux / macOS / WSL — mimo injects luke onto your PATH
+curl -fsSL https://lukelang.org/mimo | bash
 
-./build/luke BUILD ../examples/build/hello.luke -o hello && ./hello
+# Windows (PowerShell)
+irm https://lukelang.org/mimo.ps1 | iex
 ```
 
-A C++17 compiler, a C compiler and `make` are all the core language needs. SQLite,
-libsodium, libpq, the WASI SDK and `gdb` are each pulled in only by the feature that uses
-them — see [download](https://lukelang.org/download/).
+```bash
+mimo inject lukelang          # or lukelang@0.3.0
+luke BUILD hello.lk -o hello && ./hello
+```
+
+Covers Linux, macOS and Windows — Intel, Apple Silicon, ARM, 32-bit and 64-bit.
+Details and the contributor source build are on
+[download](https://lukelang.org/download/).
 
 | Command | What you get |
 | --- | --- |
