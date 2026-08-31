@@ -41,18 +41,43 @@ PRIORITY = {
 }
 
 
+def _content_sha() -> str:
+    """Prefer the PR head SHA when Actions checks out a merge commit.
+
+    pull_request workflows set GITHUB_SHA to an ephemeral merge of the PR into
+    the base branch. That merge's committer date is "now" in the runner's local
+    TZ, which makes sitemap lastmod flip across midnight and fails the
+    site-docs freshness check. The PR head commit date is stable.
+    """
+    event_path = os.environ.get("GITHUB_EVENT_PATH")
+    if event_path and os.path.isfile(event_path):
+        try:
+            import json
+            ev = json.load(open(event_path, encoding="utf-8"))
+            head = (ev.get("pull_request") or {}).get("head") or {}
+            sha = head.get("sha")
+            if isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{40}", sha):
+                return sha
+        except Exception:
+            pass
+    return "HEAD"
+
+
 def head_commit_date() -> str:
-    """One stable lastmod for the whole build, so the sitemap does not churn."""
+    """One stable lastmod for the whole build, so the sitemap does not churn.
+
+    Always format in UTC so runners in UTC+N do not advance the calendar day
+    relative to what developers commit from UTC-based environments.
+    """
+    import datetime
     try:
         out = subprocess.check_output(
-            ["git", "-C", ROOT, "log", "-1", "--format=%cs"], text=True
+            ["git", "-C", ROOT, "log", "-1", "--format=%ct", _content_sha()],
+            text=True,
         ).strip()
-        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", out):
-            return out
+        return datetime.datetime.fromtimestamp(int(out), datetime.timezone.utc).date().isoformat()
     except Exception:
-        pass
-    import datetime
-    return datetime.date.today().isoformat()
+        return datetime.datetime.now(datetime.timezone.utc).date().isoformat()
 
 
 def pages() -> list[str]:
