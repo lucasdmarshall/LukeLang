@@ -14,8 +14,17 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#include <io.h>
+#ifndef X_OK
+#define X_OK 0
+#endif
+#define luke_access _access
+#else
+#include <unistd.h>
+#define luke_access access
+#endif
 
 namespace {
 
@@ -521,7 +530,7 @@ std::string findGdb() {
   const char *candidates[] = {"/usr/bin/gdb", "/usr/local/bin/gdb", "gdb", nullptr};
   for (int i = 0; candidates[i]; ++i) {
     if (candidates[i][0] == '/') {
-      if (access(candidates[i], X_OK) == 0) return candidates[i];
+      if (luke_access(candidates[i], X_OK) == 0) return candidates[i];
     } else {
       std::string cmd = std::string("command -v ") + candidates[i] + " >/dev/null 2>&1";
       if (std::system(cmd.c_str()) == 0) return candidates[i];

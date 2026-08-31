@@ -1,5 +1,24 @@
 #include "luke/build.hpp"
 
+#include <iostream>
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+
+namespace luke {
+
+int runDapStdio(const BuildOptions & /*baseOpts*/) {
+  std::cerr
+      << "Error: luke DAP needs a POSIX host (gdb + fork).\n"
+      << "  On Windows use WSL, or luke DEBUG on Linux/macOS.\n";
+  return 1;
+}
+
+}  // namespace luke
+
+#else
+
+#include "luke/build.hpp"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -564,3 +583,5 @@ int runDapStdio(const BuildOptions & /*baseOpts*/) {
 }
 
 }  // namespace luke
+
+#endif  // !_WIN32

@@ -49,7 +49,7 @@ jobs:
             target: darwin-arm64
             setup: ""
           - id: darwin-x86_64
-            os: macos-13
+            os: macos-latest
             target: darwin-x86_64
             setup: ""
           - id: windows-x86_64
