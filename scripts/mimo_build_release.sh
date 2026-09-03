@@ -141,6 +141,14 @@ chmod +x "$STAGE/$EXE_NAME" 2>/dev/null || true
     windows-*)
       printf 'Windows binaries are statically linked. You should not need MinGW DLLs\n'
       printf '(libstdc++-6.dll, libgcc_s_seh-1.dll, libwinpthread-1.dll).\n'
+      printf '\n'
+      printf 'Not Authenticode-signed yet: SmartScreen may warn on download.\n'
+      printf 'Unblock: right-click the zip → Properties → Unblock → OK.\n'
+      printf '\n'
+      printf 'luke.exe is a CLI. Do not double-click it (the window will flash).\n'
+      printf 'Install with PowerShell instead:\n'
+      printf '  irm https://lukelang.org/mimo.ps1 | iex\n'
+      printf 'Or download https://lukelang.org/install-windows.cmd and run it.\n'
       ;;
   esac
 } > "$STAGE/README.txt"

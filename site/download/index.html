@@ -174,6 +174,11 @@
         <p class="note">
           Version 0.3.3. Machine-readable index:
           <a href="/dist/mimo/channel/stable.json">stable.json</a>.
+          Windows builds are statically linked (no MinGW DLLs).
+          They are <b>not Authenticode-signed yet</b>, so SmartScreen may say
+          “Suspicious download” — that is expected. Prefer the PowerShell installer below,
+          or right-click the zip → Properties → <b>Unblock</b> → OK, then extract.
+          Do not double-click <code>luke.exe</code>; it is a CLI (the window will flash and close).
         </p>
       </section>
 
@@ -187,8 +192,23 @@
         </p>
         <h3>Linux / macOS / WSL</h3>
 <pre><code><span class="ln"><b class="sh">curl</b> -fsSL https://lukelang.org/mimo | bash</span></code></pre>
-        <h3>Windows (PowerShell)</h3>
+        <h3>Windows (PowerShell) — recommended</h3>
+        <p>
+          Open <b>Windows PowerShell</b> (Start → type PowerShell → Enter) and paste:
+        </p>
 <pre><code><span class="ln">irm https://lukelang.org/mimo.ps1 | iex</span></code></pre>
+        <p>
+          You should see step markers <code>[1/4]</code> … <code>[4/4]</code> and a green
+          <b>SUCCESS</b> banner. Then open a <b>new</b> terminal and run
+          <code>mimo doctor</code>.
+        </p>
+        <h3>Windows (double-click installer)</h3>
+        <p>
+          If you want a window that stays open:
+          <a class="btn btn--dl" href="/install-windows.cmd" download>Download install-windows.cmd</a>
+          then right-click → Properties → <b>Unblock</b> if shown → double-click.
+          It prints SUCCESS or FAILED and waits for Enter.
+        </p>
         <p>Already have mimo installed?</p>
 <pre><code><span class="ln"><b class="sh">mimo</b> inject lukelang</span>
 <span class="ln"><b class="sh">mimo</b> inject lukelang@0.3.3</span>
