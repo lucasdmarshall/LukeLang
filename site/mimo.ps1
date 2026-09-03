@@ -11,7 +11,7 @@
 #>
 
 $ErrorActionPreference = "Stop"
-$MimoVersion = "0.3.0"
+$MimoVersion = "0.3.3"
 $MimoHome = if ($env:MIMO_HOME) { $env:MIMO_HOME } else { Join-Path $HOME ".mimo" }
 $MimoDist = if ($env:MIMO_DIST) { $env:MIMO_DIST } else { "https://lukelang.org/dist/mimo" }
 $MimoRegistry = if ($env:MIMO_REGISTRY) { $env:MIMO_REGISTRY } else { "https://packages.lukelang.org/index.json" }
@@ -20,6 +20,48 @@ $MimoToolchains = Join-Path $MimoHome "toolchains"
 $MimoCache = Join-Path $MimoHome "cache"
 
 function Write-Mimo($msg) { Write-Host "mimo: $msg" }
+function Write-MimoStep([string]$Step, [string]$Msg) {
+  Write-Host ""
+  Write-Host ("[{0}] {1}" -f $Step, $Msg) -ForegroundColor Cyan
+}
+function Write-MimoOk($msg) { Write-Host "  OK  $msg" -ForegroundColor Green }
+function Write-MimoFail($msg) { Write-Host " FAIL $msg" -ForegroundColor Red }
+
+function Test-MimoInteractive {
+  try {
+    return [Environment]::UserInteractive -and $Host.Name -ne "Default Host"
+  } catch {
+    return $false
+  }
+}
+
+function Wait-MimoExit([int]$Code = 0) {
+  # Keep the window open when double-clicked / launched outside an existing shell.
+  $keep = $env:MIMO_PAUSE
+  if (-not $keep) {
+    if (-not [Console]::IsInputRedirected -and -not [Console]::IsOutputRedirected) {
+      # Parent-less consoles (explorer double-click) often have no useful $Host parent.
+      try {
+        $ppid = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID").ParentProcessId
+        $parent = Get-Process -Id $ppid -ErrorAction SilentlyContinue
+        if ($parent -and $parent.ProcessName -match '^(explorer|cmd|powershell|pwsh|WindowsTerminal|OpenConsole)$') {
+          if ($parent.ProcessName -eq "explorer") { $keep = "1" }
+        }
+      } catch { }
+    }
+  }
+  if ($keep -eq "1" -or $env:MIMO_PAUSE -eq "1") {
+    Write-Host ""
+    if ($Code -eq 0) {
+      Write-Host "Install finished. You can close this window." -ForegroundColor Green
+    } else {
+      Write-Host "Install failed. Read the error above, then close this window." -ForegroundColor Red
+    }
+    Write-Host -NoNewline "Press Enter to exit..."
+    try { [void](Read-Host) } catch { Start-Sleep -Seconds 8 }
+  }
+  exit $Code
+}
 
 function Parse-Spec([string]$Spec) {
   if ($Spec -match "^(?<n>[^@]+)@(?<v>.+)$") {
@@ -43,7 +85,12 @@ function Ensure-Dirs {
 }
 
 function Download-File([string]$Url, [string]$Dest) {
+  Write-Mimo "download $Url"
+  $ProgressPreference = "Continue"
   Invoke-WebRequest -Uri $Url -OutFile $Dest -UseBasicParsing
+  if (-not (Test-Path $Dest)) { throw "download produced no file: $Dest" }
+  $bytes = (Get-Item $Dest).Length
+  Write-MimoOk ("saved {0} ({1:N0} bytes)" -f $Dest, $bytes)
 }
 
 function Get-Sha256([string]$Path) {
@@ -51,6 +98,7 @@ function Get-Sha256([string]$Path) {
 }
 
 function Install-Self {
+  Write-MimoStep "1/4" "Installing mimo into $MimoHome"
   Ensure-Dirs
   $dest = Join-Path $MimoBin "mimo.ps1"
   $wrapper = Join-Path $MimoBin "mimo.cmd"
@@ -58,6 +106,14 @@ function Install-Self {
   Download-File "$MimoDist/mimo.ps1" $dest
   @"
 @echo off
+setlocal
+REM Double-click friendly: keep the window open after install.
+if "%~1"=="" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0mimo.ps1" 
+  echo.
+  pause
+  exit /b %ERRORLEVEL%
+)
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0mimo.ps1" %*
 "@ | Set-Content -Encoding ASCII -Path $wrapper
   $tplSrc = Join-Path $PSScriptRoot "templates"
@@ -66,7 +122,22 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0mimo.ps1" %*
     New-Item -ItemType Directory -Force -Path $tplDest | Out-Null
     Copy-Item -Path (Join-Path $tplSrc "*") -Destination $tplDest -Recurse -Force
   }
-  Write-Mimo "installed mimo $MimoVersion → $dest"
+  Write-MimoOk "mimo $MimoVersion → $dest"
+  Write-MimoOk "launcher → $wrapper"
+}
+
+function Ensure-UserPath {
+  $path = [Environment]::GetEnvironmentVariable("Path", "User")
+  if (-not $path) { $path = "" }
+  $parts = @($path -split ";" | Where-Object { $_ -and $_.Trim() -ne "" })
+  if ($parts | Where-Object { $_ -eq $MimoBin }) {
+    Write-MimoOk "User PATH already contains $MimoBin"
+    return
+  }
+  $newPath = ($MimoBin + ";" + $path).TrimEnd(";")
+  [Environment]::SetEnvironmentVariable("Path", $newPath, "User")
+  $env:Path = "$MimoBin;$env:Path"
+  Write-MimoOk "added $MimoBin to User PATH (new terminals pick this up)"
 }
 
 function Get-Channel([string]$Channel = "stable") {
@@ -76,6 +147,7 @@ function Get-Channel([string]$Channel = "stable") {
 }
 
 function Inject-LukeLang([string]$Spec = "lukelang") {
+  Write-MimoStep "2/4" "Downloading LukeLang compiler"
   Ensure-Dirs
   $name = $Spec
   $want = "latest"
@@ -102,11 +174,15 @@ function Inject-LukeLang([string]$Spec = "lukelang") {
   Write-Mimo "inject lukelang@$version ($target)"
   Download-File $url $archive
   if ($sha) {
+    Write-MimoStep "3/4" "Verifying sha256"
     $got = Get-Sha256 $archive
     if ($got -ne $sha.ToLowerInvariant()) { throw "checksum mismatch: $got != $sha" }
-    Write-Mimo "sha256 ok"
+    Write-MimoOk "sha256 matches"
+  } else {
+    Write-MimoStep "3/4" "Skip checksum (pinned version without channel sha)"
   }
 
+  Write-MimoStep "4/4" "Installing into $MimoToolchains"
   $root = Join-Path $MimoToolchains "lukelang-$version"
   if (Test-Path $root) { Remove-Item -Recurse -Force $root }
   New-Item -ItemType Directory -Force -Path $root | Out-Null
@@ -126,21 +202,54 @@ function Inject-LukeLang([string]$Spec = "lukelang") {
 
   Copy-Item (Join-Path $root "luke.exe") (Join-Path $MimoBin "luke.exe") -Force
   Set-Content -Path (Join-Path $MimoHome "current-lukelang") -Value $version -NoNewline
-  Write-Mimo "lukelang $version ready"
-  Write-Mimo "binary: $(Join-Path $MimoBin 'luke.exe')"
-  Show-PathHint
+  Ensure-UserPath
+  Write-MimoOk "lukelang $version ready"
+  Write-MimoOk ("binary: {0}" -f (Join-Path $MimoBin "luke.exe"))
 }
 
 function Show-PathHint {
-  $path = [Environment]::GetEnvironmentVariable("Path", "User")
-  if ($path -split ";" | Where-Object { $_ -eq $MimoBin }) {
-    Write-Mimo "User PATH already contains $MimoBin"
-    return
+  Ensure-UserPath
+}
+
+function Install-LukeBootstrap {
+  Write-Host ""
+  Write-Host "========================================" -ForegroundColor Yellow
+  Write-Host "  LukeLang installer (mimo $MimoVersion)" -ForegroundColor Yellow
+  Write-Host "========================================" -ForegroundColor Yellow
+  Write-Host "  Home: $MimoHome"
+  Write-Host "  Dist: $MimoDist"
+  Write-Host ""
+  try {
+    Install-Self
+    Inject-LukeLang "lukelang"
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "  SUCCESS" -ForegroundColor Green
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "  luke.exe  →  $(Join-Path $MimoBin 'luke.exe')"
+    Write-Host "  mimo.cmd  →  $(Join-Path $MimoBin 'mimo.cmd')"
+    Write-Host ""
+    Write-Host "  Open a NEW PowerShell or terminal, then run:"
+    Write-Host "    mimo doctor"
+    Write-Host "    luke"
+    Write-Host ""
+    Write-Host "  Note: unsigned downloads may trigger Windows SmartScreen."
+    Write-Host "  That is expected until we ship Authenticode-signed builds."
+    Write-Host "  Prefer: irm https://lukelang.org/mimo.ps1 | iex"
+    Write-Host "  Or unblock the zip: right-click → Properties → Unblock."
+    Write-Host ""
+    return 0
+  } catch {
+    Write-Host ""
+    Write-MimoFail $_.Exception.Message
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Red
+    Write-Host "  FAILED" -ForegroundColor Red
+    Write-Host "========================================" -ForegroundColor Red
+    Write-Host "  See https://lukelang.org/download/ for manual steps."
+    Write-Host ""
+    return 1
   }
-  Write-Mimo "add to User PATH (PowerShell):"
-  Write-Host ""
-  Write-Host "  [Environment]::SetEnvironmentVariable('Path', `"$MimoBin;`" + [Environment]::GetEnvironmentVariable('Path','User'), 'User')"
-  Write-Host ""
 }
 
 function Show-List {
@@ -611,51 +720,70 @@ Bootstrap:
 
 # Entry when executed as a script (including irm | iex).
 $argsList = @($args)
-if ($MyInvocation.InvocationName -eq "." -or $MyInvocation.Line -match "iex") {
-  # Piped install: no args → self-install + inject.
-  if ($argsList.Count -eq 0) {
-    Install-Self
-    Inject-LukeLang "lukelang"
-    return
+$pipedInstall = ($MyInvocation.InvocationName -eq "." -or "$($MyInvocation.Line)" -match "iex")
+
+function Invoke-MimoMain {
+  param(
+    [object[]]$ArgList,
+    [bool]$Piped = $false
+  )
+
+  if ($Piped -and $ArgList.Count -eq 0) {
+    return (Install-LukeBootstrap)
+  }
+
+  $cmd = if ($ArgList.Count -gt 0) { $ArgList[0] } else { "" }
+  $rest = if ($ArgList.Count -gt 1) { $ArgList[1..($ArgList.Count - 1)] } else { @() }
+
+  switch ($cmd) {
+    ""              { return (Install-LukeBootstrap) }
+    "inject"        { Inject-LukeLang $(if ($rest.Count) { $rest[0] } else { "lukelang" }); return 0 }
+    "update"        { Inject-LukeLang $(if ($rest.Count) { $rest[0] } else { "lukelang" }); return 0 }
+    "list"          { Show-List; return 0 }
+    "ls"            { Show-List; return 0 }
+    "eject"         { Eject-LukeLang; return 0 }
+    "uninstall"     { Eject-LukeLang; return 0 }
+    "init"          { Initialize-Project $rest; return 0 }
+    "forge"         {
+      if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
+      Add-Package $rest[0]
+      return 0
+    }
+    "add"           {
+      if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
+      Add-Package $rest[0]
+      return 0
+    }
+    "install"       {
+      if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
+      Add-Package $rest[0]
+      return 0
+    }
+    "remove"        {
+      if (-not $rest.Count) { throw "usage: mimo remove <package>" }
+      Remove-Package $rest[0]
+      return 0
+    }
+    "run"           { Invoke-MimoRun $(if ($rest.Count) { $rest[0] } else { "" }); return 0 }
+    "doctor"        { Show-Doctor; return 0 }
+    "self-install"  { Install-Self; Show-PathHint; return 0 }
+    "setup"         { return (Install-LukeBootstrap) }
+    "help"          { Show-Help; return 0 }
+    "-h"            { Show-Help; return 0 }
+    "--help"        { Show-Help; return 0 }
+    "version"       { Write-Host "mimo $MimoVersion"; return 0 }
+    "--version"     { Write-Host "mimo $MimoVersion"; return 0 }
+    default         { throw "unknown command '$cmd' (try: mimo help)" }
   }
 }
 
-$cmd = if ($argsList.Count -gt 0) { $argsList[0] } else { "" }
-$rest = if ($argsList.Count -gt 1) { $argsList[1..($argsList.Count - 1)] } else { @() }
-
-switch ($cmd) {
-  ""              { Install-Self; Inject-LukeLang "lukelang" }
-  "inject"        { Inject-LukeLang $(if ($rest.Count) { $rest[0] } else { "lukelang" }) }
-  "update"        { Inject-LukeLang $(if ($rest.Count) { $rest[0] } else { "lukelang" }) }
-  "list"          { Show-List }
-  "ls"            { Show-List }
-  "eject"         { Eject-LukeLang }
-  "uninstall"     { Eject-LukeLang }
-  "init"          { Initialize-Project $rest }
-  "forge"         {
-    if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
-    Add-Package $rest[0]
-  }
-  "add"           {
-    if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
-    Add-Package $rest[0]
-  }
-  "install"       {
-    if (-not $rest.Count) { throw "usage: mimo forge <package>[@version]" }
-    Add-Package $rest[0]
-  }
-  "remove"        {
-    if (-not $rest.Count) { throw "usage: mimo remove <package>" }
-    Remove-Package $rest[0]
-  }
-  "run"           { Invoke-MimoRun $(if ($rest.Count) { $rest[0] } else { "" }) }
-  "doctor"        { Show-Doctor }
-  "self-install"  { Install-Self; Show-PathHint }
-  "setup"         { Install-Self; Show-PathHint }
-  "help"          { Show-Help }
-  "-h"            { Show-Help }
-  "--help"        { Show-Help }
-  "version"       { Write-Host "mimo $MimoVersion" }
-  "--version"     { Write-Host "mimo $MimoVersion" }
-  default         { throw "unknown command '$cmd' (try: mimo help)" }
+try {
+  $code = Invoke-MimoMain -ArgList $argsList -Piped:$pipedInstall
+  if ($null -eq $code) { $code = 0 }
+  if ($env:MIMO_PAUSE -eq "1") { Wait-MimoExit $code }
+  if ($code -ne 0) { exit $code }
+} catch {
+  Write-MimoFail $_.Exception.Message
+  if ($env:MIMO_PAUSE -eq "1") { Wait-MimoExit 1 }
+  exit 1
 }

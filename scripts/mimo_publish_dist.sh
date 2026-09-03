@@ -27,8 +27,10 @@ mkdir -p "$CHANNEL_DIR" "$VER_DIR" "$DIST_ROOT"
 # Sync installer scripts into the site tree.
 install -m 0644 "$ROOT/tools/mimo/mimo" "$ROOT/site/mimo"
 install -m 0644 "$ROOT/tools/mimo/mimo.ps1" "$ROOT/site/mimo.ps1"
+install -m 0644 "$ROOT/tools/mimo/install-windows.cmd" "$ROOT/site/install-windows.cmd"
 install -m 0644 "$ROOT/tools/mimo/mimo" "$DIST_ROOT/mimo"
 install -m 0644 "$ROOT/tools/mimo/mimo.ps1" "$DIST_ROOT/mimo.ps1"
+install -m 0644 "$ROOT/tools/mimo/install-windows.cmd" "$DIST_ROOT/install-windows.cmd"
 if [ -d "$ROOT/tools/mimo/templates" ]; then
   rm -rf "$DIST_ROOT/templates"
   cp -R "$ROOT/tools/mimo/templates" "$DIST_ROOT/templates"
