@@ -2610,13 +2610,27 @@ void stmt(BC &bc, const std::string &text, size_t line, std::ostringstream &o,
     }
     if (!bc.locals.count(name)) {
       bc.locals[name] = e.ty;
-      if (bc.blockDepth > 0) {
-        bc.localDecls +=
-            "  " + cTy(e.ty) + " " + cIdent(name) + " = " + defaultLocalInit(e.ty) + ";\n";
-        o << "  " << cIdent(name) << " = " << e.code << ";\n";
-      } else {
-        bc.localDecls += "  " + cTy(e.ty) + " " + cIdent(name) + " = " + e.code + ";\n";
-      }
+      /*
+       * Always emit the declaration separately from the initializer.
+       *
+       * localDecls is emitted before main/function body statements. Putting
+       * e.code directly into localDecls evaluates the initializer too early.
+       *
+       * Example:
+       *
+       *   let db = dbOpen(...)
+       *   dbExec(...)
+       *   let rows = dbQuery(...)
+       *
+       * must execute as:
+       *
+       *   db = dbOpen(...)
+       *   dbExec(...)
+       *   rows = dbQuery(...)
+       */
+      bc.localDecls += "  " + cTy(e.ty) + " " + cIdent(name) + " = " +
+      defaultLocalInit(e.ty) + ";\n";
+      o << "  " << cIdent(name) << " = " << e.code << ";\n";
     } else {
       e = bc.coerceTo(line, e, bc.locals[name], "MY NAME IS " + name);
       o << "  " << cIdent(name) << " = " << e.code << ";\n";

@@ -15,6 +15,7 @@
 #include <cctype>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 namespace luke2 {
 namespace {
@@ -461,7 +462,24 @@ struct Lower {
         bind(s.name, t);
         out << ind << "MY NAME IS " << s.name;
         if (!s.type.empty()) out << " AS " << v1Type(s.type);
-        if (s.e.k != Ek::Ident || !s.e.s.empty()) {
+        /*
+         * dbQuery() is a normal SQLite stdlib function, but the Build backend
+         * already has a native intrinsic for it:
+         *
+         *   __luke_db_query(db, sql)
+         *
+         * Keep this special case limited to dbQuery().
+         */
+        if (s.e.k == Ek::Call && 
+          s.e.s == "dbQuery" && 
+          s.e.kids.size() == 2) {
+            std::string db = expr(s.e.kids[0]);
+            if (!err.empty()) return;
+            std::string sql = expr(s.e.kids[1]);
+            if (!err.empty()) return;
+            out << " SET TO __luke_db_query("
+                << db << ", " << sql << ")";
+        } else if (s.e.k != Ek::Ident || !s.e.s.empty()) {
           std::string v = expr(s.e);
           if (!err.empty()) return;
           if (!v.empty()) out << " SET TO " << v;
